@@ -12,9 +12,9 @@ steps:
 
   - name: tests
     image: elixir:1.9
-  environment:
-    DISCORD_TOKEN:
-      from_secret: discord_token
+    environment:
+      DISCORD_TOKEN:
+        from_secret: discord_token
     commands:
       - mix local.hex --force
       - mix local.rebar --force
