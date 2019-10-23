@@ -1,0 +1,28 @@
+kind: pipeline
+name: main
+
+steps:
+  - name: compile
+    image: elixir:1.9
+    commands:
+      - mix deps.get
+      - mix compile
+
+  - name: tests
+    image: elixir:1.9
+    commands:
+      - mix deps.get
+      - mix test
+
+  - name: docker
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      repo: papey/o2m
+      auto_tag: true
+      build_args:
+        - REVISION=$$CI_COMMIT
+        - RELEASE_TAG=$$CI_TAG
