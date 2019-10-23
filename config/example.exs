@@ -3,7 +3,7 @@ import Config
 # Nostrum configuration
 config :nostrum,
   # Discord token
-  token: "NjM0NjM0NzU0NTQ5MDg4MjU2.XalgTw.QP4hJRBt8oqlELkeYpkmrbkCv14",
+  token: "TOKEN",
   num_shards: :auto
 
 # o2m configuration
