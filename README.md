@@ -1,5 +1,7 @@
 # O2M, Orgie 2 Metal
 
+[![Build Status](https://drone.github.papey.fr/api/badges/papey/o2m/status.svg)](https://drone.github.papey.fr/papey/o2m)
+
 O2M is an [Elixir](https://elixir-lang.org) Discord bot capable of fetching
 data about metal bands (baked up by [Metalorgie](https://metalorgie.com)) and
 monitor podcasts shows publications on [Ausha](https://podcast.ausha.co).
