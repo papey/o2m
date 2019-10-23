@@ -26,5 +26,4 @@ o2m-*.tar
 
 .formatter.exs
 
-config/config.exs
 config/releases.exs
