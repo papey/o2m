@@ -47,7 +47,7 @@ defmodule Metalorgie do
     {:ok, json} = Jason.decode(resp.body)
 
     # Filter on band name
-    filter = Enum.filter(json, fn e -> String.downcase(e["name"]) == search end)
+    filter = Enum.filter(json, fn e -> String.contains?(String.downcase(e["name"]), search) end)
 
     # If a band is found
     case filter do
@@ -72,7 +72,7 @@ defmodule Metalorgie do
         # Filter albums by name
         filtered =
           Enum.filter(data["discography"], fn e ->
-            String.downcase(e["name"]) == String.downcase(album)
+            String.contains?(String.downcase(e["name"]), String.downcase(album))
           end)
 
         case filtered do
