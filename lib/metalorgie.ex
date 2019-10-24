@@ -35,9 +35,7 @@ defmodule Metalorgie do
       |> Enum.join(" ")
 
     # Forge url by encoding params
-    filter =
-      "[{\"property\":\"name\",\"value\":\"#{search}\"}]"
-      |> URI.encode()
+    filter = "[{\"property\":\"name\",\"value\":\"#{search}\"}]"
 
     # HTTP get call
     resp =
