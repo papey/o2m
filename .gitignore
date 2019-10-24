@@ -25,5 +25,3 @@ o2m-*.tar
 .elixir_ls
 
 .formatter.exs
-
-config/releases.exs
