@@ -7,17 +7,16 @@ defmodule Jobs do
 
   ## GenServer API
   # Start link
-  def start_link([]) do
-    GenServer.start_link(__MODULE__, [])
+  def start_link(init) do
+    GenServer.start_link(__MODULE__, init)
   end
 
   # Init
   @spec init(any) ::
           {:ok, {binary, %{date: any, show: any, title: any, url: any}}, {:continue, :work}}
-  def init(_init) do
-    {:ok, slug} = Application.fetch_env(:o2m, :ausha_slug)
-    last = Ausha.get_last_episode(slug)
-    state = {slug, last}
+  def init(init) do
+    last = Ausha.get_last_episode(init)
+    state = {init, last}
     {:ok, state, {:continue, :work}}
   end
 
