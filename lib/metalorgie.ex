@@ -14,7 +14,6 @@ defmodule Metalorgie do
       "https://www.metalorgie.com"
 
   """
-  @spec get_config_url() :: binary
   def get_config_url() do
     {:ok, url} = Application.fetch_env(:o2m, :metalorgie)
     url
@@ -25,7 +24,6 @@ defmodule Metalorgie do
 
   Returns ok + `json object` or error + message
   """
-  @spec get_band([binary]) :: {:ok, any} | {:error, binary}
   def get_band(band) do
     HTTPoison.start()
 
@@ -71,7 +69,6 @@ defmodule Metalorgie do
 
   Returns ok + `json object` or error + message
   """
-  @spec get_album([binary], [binary]) :: {:ok, any} | {:error, binary}
   def get_album(artist, album) do
     # First get band data
     case get_band(artist) do
@@ -105,7 +102,6 @@ defmodule Metalorgie do
       iex> Metalorgie.forge_band_url("korn")
       "https://www.metalorgie.com/groupe/korn"
   """
-  @spec forge_band_url(binary) :: binary
   def forge_band_url(slug) do
     Metalorgie.get_config_url() <> "/groupe/" <> slug
   end
@@ -119,7 +115,6 @@ defmodule Metalorgie do
       iex> Metalorgie.forge_album_url("korn", "the nothing", "31745")
       "https://www.metalorgie.com/groupe/korn/31745_the-nothing"
   """
-  @spec forge_album_url(binary, binary, binary) :: binary
   def forge_album_url(band, album, id) do
     slug = album |> String.replace(":", "") |> String.replace(" ", "-")
     "#{Metalorgie.get_config_url()}/groupe/#{band}/#{id}_#{slug}"

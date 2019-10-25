@@ -12,8 +12,6 @@ defmodule Jobs do
   end
 
   # Init
-  @spec init(any) ::
-          {:ok, {binary, %{date: any, show: any, title: any, url: any}}, {:continue, :work}}
   def init(init) do
     last = Ausha.get_last_episode(init)
     state = {init, last}
@@ -21,15 +19,11 @@ defmodule Jobs do
   end
 
   # First run
-  @spec handle_continue(:work, {binary, atom | %{date: binary}}) ::
-          {:noreply, {binary, atom | %{date: binary}}}
   def handle_continue(:work, state) do
     {:noreply, work_then_reschedule(state)}
   end
 
   # When an info message is received
-  @spec handle_info(:work, {binary, atom | %{date: binary}}) ::
-          {:noreply, {binary, atom | %{date: binary}}}
   def handle_info(:work, state) do
     {:noreply, work_then_reschedule(state)}
   end
@@ -39,7 +33,6 @@ defmodule Jobs do
 
   Returns timer configuration
   """
-  @spec get_timer_config :: integer()
   def get_timer_config() do
     from_env_to_int(:o2m, :timer)
   end
