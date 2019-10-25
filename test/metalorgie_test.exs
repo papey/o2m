@@ -7,6 +7,11 @@ defmodule MetalorgieTest do
     assert json["name"] == "Korn"
   end
 
+  test "get_band for band `opeth`" do
+    {:ok, json} = Metalorgie.get_band(["opeth"])
+    assert json["name"] == "Opeth"
+  end
+
   test "get_band for band `nopnop`" do
     {:error, message} = Metalorgie.get_band(["nopnop"])
     assert message == "No band with name nopnop found"

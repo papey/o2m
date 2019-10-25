@@ -44,13 +44,25 @@ defmodule Metalorgie do
     # Decode json
     {:ok, json} = Jason.decode(resp.body)
 
-    # Filter on band name
-    filter = Enum.filter(json, fn e -> String.contains?(String.downcase(e["name"]), search) end)
+    # Filter on band name, hard search
+    filter = Enum.filter(json, fn e -> String.downcase(e["name"]) == search end)
 
     # If a band is found
     case filter do
-      [band | _] -> {:ok, band}
-      _ -> {:error, "No band with name #{search} found"}
+      [band | _] ->
+        {:ok, band}
+
+      _ ->
+        # if not
+        # Filter on band name, soft search
+        filter =
+          Enum.filter(json, fn e -> String.contains?(String.downcase(e["name"]), search) end)
+
+        # If a band is found
+        case filter do
+          [band | _] -> {:ok, band}
+          _ -> {:error, "No band with name #{search} found"}
+        end
     end
   end
 
