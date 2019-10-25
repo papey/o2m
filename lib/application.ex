@@ -6,17 +6,24 @@ defmodule O2M.Application do
   use Application
 
   def start(_type, _args) do
-    children = [
-      %{
-        id: Jobs,
-        start: {Jobs, :start_link, [[]]}
-      },
-      O2M
-    ]
+    {:ok, jobs} = generate_jobs()
+
+    children = jobs ++ [O2M]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: O2M.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  # Generated jobs inside an enum for each podcast to watch
+  defp generate_jobs() do
+    {:ok, conf} = Application.fetch_env(:o2m, :ausha_slug)
+
+    slugs = String.split(conf, ",")
+
+    jobs = Enum.map(slugs, fn e -> %{id: "jobs-#{e}", start: {Jobs, :start_link, [e]}} end)
+
+    {:ok, jobs}
   end
 end
