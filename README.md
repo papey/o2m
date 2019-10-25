@@ -38,10 +38,24 @@ To compile all elixir files
 MIX_ENV=prod mix release
 ```
 
-O2M uses config file in .esx format, see `example.exs` file inside
+Everything will be generated inside _\_build_ dir, to start all the things
+
+```
+./_build/prod/rel/o2m/bin/o2m start
+```
+
+Configuration is passed to o2m using environment variables
+
+- DISCORD_TOKEN from Discord
+- O2M_AUSHA_SLUGS (eg : owAEhJ0qOPkb) from Ausha RSS page. To enable multiple shows add , between each slug (eg : owAEhJ0qOPkb,oLAxhNMl7P8y)
+- O2M_CHAN_ID from Discord to select channel used to post message from podcasts
+
+You can also configure O2M using `releases.esx`, see `example.exs` file inside
 the `config` directory for real life examples.
 
 ## Running the tests
+
+With proper environment variables
 
 ```sh
 mix test
