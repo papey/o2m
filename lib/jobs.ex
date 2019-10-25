@@ -6,24 +6,32 @@ defmodule Jobs do
   alias Nostrum.Api
 
   ## GenServer API
-  # Start link
+  @doc """
+  Starts the GenServer
+  """
   def start_link(init) do
     GenServer.start_link(__MODULE__, init)
   end
 
-  # Init
+  @doc """
+  Init GenServer state
+  """
   def init(init) do
     last = Ausha.get_last_episode(init)
     state = {init, last}
     {:ok, state, {:continue, :work}}
   end
 
-  # First run
+  @doc """
+  Init the scheduled loop
+  """
   def handle_continue(:work, state) do
     {:noreply, work_then_reschedule(state)}
   end
 
-  # When an info message is received
+  @doc """
+  handle loop event and reloop
+  """
   def handle_info(:work, state) do
     {:noreply, work_then_reschedule(state)}
   end

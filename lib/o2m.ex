@@ -78,7 +78,9 @@ defmodule O2M do
     "Missing band name for `band` command"
   end
 
-  # If an arg is provided
+  @doc """
+  Handle band command and search for a band on Metalorgie
+  """
   def band(args) do
     case Metalorgie.get_band(args) do
       {:ok, band} ->
@@ -89,13 +91,14 @@ defmodule O2M do
     end
   end
 
-  # Search for an album
   # If no args provided
   def album([]) do
     "Missing band name and album name for `album` command"
   end
 
-  # If an arg is provided
+  @doc """
+  Search for an album from a specified band on Metalorgie
+  """
   def album(args) do
     [band | album] =
       Enum.join(args, " ") |> String.split("//") |> Enum.map(fn e -> String.trim(e) end)
@@ -109,8 +112,9 @@ defmodule O2M do
     end
   end
 
-  # Help
-  # If no args provided
+  @doc """
+  Handle help command
+  """
   def help([]) do
     "Using prefix #{Application.fetch_env!(:o2m, :prefix)}, available commands are :
     - **album**: to get album info (try _#{Application.fetch_env!(:o2m, :prefix)}help album_)
