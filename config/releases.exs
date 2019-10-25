@@ -15,7 +15,7 @@ config :o2m,
   # Metalorgie url, used for `band` and `album` command
   metalorgie: "https://www.metalorgie.com",
   # Time between each check on Ausha
-  timer: System.get_env("O2M_AUSHA_TIMER", "500"),
+  timer: System.get_env("O2M_JOBS_TIMER", "500"),
   # Channel ID
   chan: System.get_env("O2M_CHAN_ID"),
   # RSS Ausha slug (full url example : https://feed.ausha.co/owAEhJ0qOPkb)
