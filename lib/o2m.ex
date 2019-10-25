@@ -115,7 +115,7 @@ defmodule O2M do
     "Using prefix #{Application.fetch_env!(:o2m, :prefix)}, available commands are :
     - **album**: to get album info
     - **band**: to get page band info
-    - **help**: to get this help message;"
+    - **help**: to get this help message"
   end
 
   # If an arg is provided
