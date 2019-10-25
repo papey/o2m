@@ -40,10 +40,9 @@ defmodule Jobs do
 
   Returns timer configuration
   """
-  @spec get_timer_config :: any
+  @spec get_timer_config :: integer()
   def get_timer_config() do
-    {:ok, timer} = Application.fetch_env(:o2m, :timer)
-    timer
+    from_env_to_int(:o2m, :timer)
   end
 
   defp work_then_reschedule(state) do
@@ -61,7 +60,7 @@ defmodule Jobs do
       # If so
       true ->
         # Post a message
-        Api.create_message(Application.fetch_env!(:o2m, :chan), Ausha.new_message(new))
+        Api.create_message(from_env_to_int(:o2m, :chan), Ausha.new_message(new))
         # Update state
         {slug, new}
 
@@ -69,5 +68,11 @@ defmodule Jobs do
         # Keep old state
         state
     end
+  end
+
+  defp from_env_to_int(app, val) do
+    {:ok, v} = Application.fetch_env(app, val)
+    {ret, ""} = Integer.parse(v)
+    ret
   end
 end
