@@ -113,8 +113,8 @@ defmodule O2M do
   # If no args provided
   def help([]) do
     "Using prefix #{Application.fetch_env!(:o2m, :prefix)}, available commands are :
-    - **album**: to get album info
-    - **band**: to get page band info
+    - **album**: to get album info (try _#{Application.fetch_env!(:o2m, :prefix)}help album_)
+    - **band**: to get page band info (try _#{Application.fetch_env!(:o2m, :prefix)}help band_)
     - **help**: to get this help message"
   end
 
