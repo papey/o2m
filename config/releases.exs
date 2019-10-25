@@ -9,9 +9,9 @@ config :nostrum,
 # o2m configuration
 config :o2m,
   # Username on Discord
-  username: System.get_env("O2M_USERNAME"),
+  username: System.get_env("O2M_USERNAME", "Orgie 2 Metal"),
   # Prefix used for commands
-  prefix: "!",
+  prefix: System.get_env("O2M_PREFIX", "!"),
   # Metalorgie url, used for `band` and `album` command
   metalorgie: "https://www.metalorgie.com",
   # Time between each check on Ausha

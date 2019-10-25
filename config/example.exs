@@ -11,12 +11,12 @@ config :o2m,
   # Username on Discord
   username: "Orgie 2 Metal",
   # Prefix used for commands
-  prefix: "!",
+  prefix: System.get_env("O2M_PREFIX", "!"),
   # Metalorgie url, used for `band` and `album` command
   metalorgie: "https://www.metalorgie.com",
   # Time between each check on Ausha
-  timer: 500,
+  timer: System.get_env("O2M_AUSHA_TIMER", "500"),
   # Channel ID
-  chan: 628_119_686_910_967_808,
+  chan: System.get_env("O2M_CHAN_ID"),
   # RSS Ausha slug (full url example : https://feed.ausha.co/owAEhJ0qOPkb)
-  ausha_slug: "owAEhJ0qOPkb"
+  ausha_slug: System.get_env("O2M_AUSHA_SLUG")
