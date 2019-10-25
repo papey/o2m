@@ -19,4 +19,4 @@ config :o2m,
   # Channel ID
   chan: System.get_env("O2M_CHAN_ID"),
   # RSS Ausha slug (full url example : https://feed.ausha.co/owAEhJ0qOPkb)
-  ausha_slug: System.get_env("O2M_AUSHA_SLUG")
+  ausha_slugs: System.get_env("O2M_AUSHA_SLUGS")

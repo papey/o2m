@@ -18,7 +18,7 @@ defmodule O2M.Application do
 
   # Generated jobs inside an enum for each podcast to watch
   defp generate_jobs() do
-    {:ok, conf} = Application.fetch_env(:o2m, :ausha_slug)
+    {:ok, conf} = Application.fetch_env(:o2m, :ausha_slugs)
 
     slugs = String.split(conf, ",")
 
