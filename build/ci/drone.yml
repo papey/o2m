@@ -15,6 +15,10 @@ steps:
     environment:
       DISCORD_TOKEN:
         from_secret: discord_token
+      O2M_AUSHA_SLUG:
+        from_secret: o2m_ausha_slug
+      02M_CHAN_ID:
+        from_secret: o2m_chan_id
     commands:
       - mix local.hex --force
       - mix local.rebar --force
