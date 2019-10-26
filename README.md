@@ -4,7 +4,7 @@
 
 O2M is an [Elixir](https://elixir-lang.org) Discord bot capable of fetching
 data about metal bands (baked up by [Metalorgie](https://metalorgie.com)) and
-monitor podcasts shows publications on [Ausha](https://podcast.ausha.co).
+monitor podcasts shows publications on [Ausha](https://ausha.co).
 
 ## Getting Started
 
@@ -96,7 +96,7 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 ## Acknowledgments
 
 - [Metalorgie](https://www.metalorgie.com) for the awesome website
-- [Ausha](https://podcast.ausha.co) for the awesome podcast plateform
+- [Ausha](https://ausha.co) for the awesome podcast plateform
 - [YCKM](https://podcast.ausha.co/yckm) & [Le Bruit](https://podcast.ausha.co/le-bruit) for the inspiration around podcasts tools
 - [Discord](https://discordapp.com) for the plateform they provide for free
 - Kudos @href, my Elixir master !
