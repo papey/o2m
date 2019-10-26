@@ -67,7 +67,7 @@ defmodule O2M do
   """
   def extract_cmd_and_args(content, prefix) do
     if String.starts_with?(content, prefix) do
-      [cmd | args] = String.split(content, " ")
+      [cmd | args] = String.split(content, " ", trim: true)
       {String.replace(cmd, prefix, ""), args}
     end
   end
