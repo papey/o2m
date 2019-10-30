@@ -47,7 +47,7 @@ Everything will be generated inside _\_build_ dir, to start all the things
 Configuration is passed to o2m using environment variables
 
 - DISCORD_TOKEN from Discord
-- O2M_AUSHA_SLUGS (eg : owAEhJ0qOPkb) from Ausha RSS page. To enable multiple shows add , between each slug (eg : owAEhJ0qOPkb,oLAxhNMl7P8y)
+- O2M_FEED_URLS (eg : https://feed.ausha.co/owAEhJ0qOPkb) from Ausha RSS page. To enable multiple shows add , between each feed url (eg : https://feed.ausha.co/owAEhJ0qOPkb,https://feed.ausha.co/oLAxhNMl7P8y)
 - O2M_CHAN_ID from Discord to select channel used to post message from podcasts
 
 You can also configure O2M using `releases.esx`, see `example.exs` file inside

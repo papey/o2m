@@ -17,7 +17,7 @@ defmodule Jobs do
   Init GenServer state
   """
   def init(init) do
-    last = Ausha.get_last_episode(init)
+    last = Feed.get_last_episode(init)
     state = {init, last}
     {:ok, state, {:continue, :work}}
   end
@@ -47,22 +47,22 @@ defmodule Jobs do
 
   defp work_then_reschedule(state) do
     # Fetch current state
-    {slug, cur} = state
+    {url, cur} = state
 
-    # Get last episode from Ausha
-    new = Ausha.get_last_episode(slug)
+    # Get last episode from feed
+    new = Feed.get_last_episode(url)
 
     # Wait
     Process.send_after(self(), :work, get_timer_config() * 1000)
 
     # Is the last episode fetch a new one ?
-    case Ausha.compare_dates(cur.date, new.date) do
+    case Feed.compare_dates(cur.date, new.date) do
       # If so
       true ->
         # Post a message
-        Api.create_message(from_env_to_int(:o2m, :chan), Ausha.new_message(new))
+        Api.create_message(from_env_to_int(:o2m, :chan), Feed.new_message(new))
         # Update state
-        {slug, new}
+        {url, new}
 
       false ->
         # Keep old state
