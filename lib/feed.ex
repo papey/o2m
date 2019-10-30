@@ -35,10 +35,20 @@ defmodule Feed do
       true
   """
   def compare_dates(cur, next) do
-    cur = Timex.parse!(cur, "%a, %d %b %Y %H:%M:%S %z", :strftime)
-    next = Timex.parse!(next, "%a, %d %b %Y %H:%M:%S %z", :strftime)
+    # Anchor dates contains GMT
+    case String.contains?(cur, "GMT") && String.contains?(next, "GMT") do
+      true ->
+        # This is an Anchor podcast, parse it using Anchor syntax
+        cur = Timex.parse!(cur, "%a, %d %b %Y %H:%M:%S GMT", :strftime)
+        next = Timex.parse!(next, "%a, %d %b %Y %H:%M:%S GMT", :strftime)
+        cur <= next
 
-    cur < next
+      false ->
+        # This is a Ausha podcast, parse it using Ausha syntax
+        cur = Timex.parse!(cur, "%a, %d %b %Y %H:%M:%S %z", :strftime)
+        next = Timex.parse!(next, "%a, %d %b %Y %H:%M:%S %z", :strftime)
+        cur <= next
+    end
   end
 
   @doc """
