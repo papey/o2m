@@ -41,13 +41,13 @@ defmodule Feed do
         # This is an Anchor podcast, parse it using Anchor syntax
         cur = Timex.parse!(cur, "%a, %d %b %Y %H:%M:%S GMT", :strftime)
         next = Timex.parse!(next, "%a, %d %b %Y %H:%M:%S GMT", :strftime)
-        cur <= next
+        cur < next
 
       false ->
         # This is a Ausha podcast, parse it using Ausha syntax
         cur = Timex.parse!(cur, "%a, %d %b %Y %H:%M:%S %z", :strftime)
         next = Timex.parse!(next, "%a, %d %b %Y %H:%M:%S %z", :strftime)
-        cur <= next
+        cur < next
     end
   end
 
