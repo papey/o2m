@@ -15,8 +15,8 @@ steps:
     environment:
       DISCORD_TOKEN:
         from_secret: discord_token
-      O2M_AUSHA_SLUGS:
-        from_secret: o2m_ausha_slugs
+      O2M_FEED_URLS:
+        from_secret: o2m_feed_urls
       02M_CHAN_ID:
         from_secret: o2m_chan_id
     commands:
