@@ -32,7 +32,7 @@ defmodule Feed do
   ## Examples
 
       iex> Feed.compare_dates("Tue, 15 Oct 2019 15:00:00 +0000", "Wed, 16 Oct 2019 15:00:00 +0000")
-      true
+      -1
   """
   def compare_dates(cur, next) do
     # Anchor dates contains GMT
@@ -41,13 +41,13 @@ defmodule Feed do
         # This is an Anchor podcast, parse it using Anchor syntax
         cur = Timex.parse!(cur, "%a, %d %b %Y %H:%M:%S GMT", :strftime)
         next = Timex.parse!(next, "%a, %d %b %Y %H:%M:%S GMT", :strftime)
-        cur < next
+        Timex.compare(cur, next)
 
       false ->
         # This is a Ausha podcast, parse it using Ausha syntax
         cur = Timex.parse!(cur, "%a, %d %b %Y %H:%M:%S %z", :strftime)
         next = Timex.parse!(next, "%a, %d %b %Y %H:%M:%S %z", :strftime)
-        cur < next
+        Timex.compare(cur, next)
     end
   end
 

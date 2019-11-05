@@ -58,13 +58,13 @@ defmodule Jobs do
     # Is the last episode fetch a new one ?
     case Feed.compare_dates(cur.date, new.date) do
       # If so
-      true ->
+      -1 ->
         # Post a message
         Api.create_message(from_env_to_int(:o2m, :chan), Feed.new_message(new))
         # Update state
         {url, new}
 
-      false ->
+      _ ->
         # Keep old state
         state
     end
