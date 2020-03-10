@@ -32,16 +32,24 @@ defmodule O2M do
       {:ok, prefix} = Application.fetch_env(:o2m, :prefix)
 
       # Handle commands
-      case extract_cmd_and_args(msg.content, prefix) do
-        {"band", args} ->
-          Api.create_message(msg.channel_id, band(args))
+      case O2M.Commands.extract_cmd_and_args(msg.content, prefix) do
+        # if an error occured while parsing
+        {:error, reason} ->
+          Api.create_message(msg.channel_id, reason)
 
-        {"album", args} ->
-          Api.create_message(msg.channel_id, album(args))
+        # if command is mo with args and subcommand
+        {:ok, "mo", sub, args} ->
+          Api.create_message(msg.channel_id, O2M.Commands.Mo.handle(sub, args))
 
-        {"help", args} ->
-          Api.create_message(msg.channel_id, help(args))
+        # if command is help with args and subcommand
+        {:ok, "help", _, _} ->
+          Api.create_message(msg.channel_id, O2M.Commands.Help.handle(prefix))
 
+        # if a command is not already catch by a case, this is not a supported command
+        {:ok, cmd, _, _} ->
+          Api.create_message(msg.channel_id, "Sorry but **#{cmd}** command is not available")
+
+        # If something goes realy wrong, do not care
         _ ->
           :ignore
       end
@@ -52,87 +60,5 @@ defmodule O2M do
   # you don't have a method definition for each event type.
   def handle_event(_event) do
     :noop
-  end
-
-  @doc """
-  Extract command and args from a message
-
-  Returns a tuple containing cmd and args
-
-  ## Examples
-
-      iex> O2M.extract_cmd_and_args("!band test", "!")
-      {"band", ["test"]}
-
-  """
-  def extract_cmd_and_args(content, prefix) do
-    if String.starts_with?(content, prefix) do
-      [cmd | args] = String.split(content, " ", trim: true)
-      {String.replace(cmd, prefix, ""), args}
-    end
-  end
-
-  # Search for a band
-  # If no args provided
-  def band([]) do
-    "Missing band name for `band` command"
-  end
-
-  @doc """
-  Handle band command and search for a band on Metalorgie
-  """
-  def band(args) do
-    case Metalorgie.get_band(args) do
-      {:ok, band} ->
-        Metalorgie.forge_band_url(band["slug"])
-
-      {:error, msg} ->
-        msg
-    end
-  end
-
-  # If no args provided
-  def album([]) do
-    "Missing band name and album name for `album` command"
-  end
-
-  @doc """
-  Search for an album from a specified band on Metalorgie
-  """
-  def album(args) do
-    [band | album] =
-      Enum.join(args, " ") |> String.split("//") |> Enum.map(fn e -> String.trim(e) end)
-
-    case Metalorgie.get_album(String.split(band, " "), String.split(Enum.at(album, 0), " ")) do
-      {:ok, album} ->
-        Metalorgie.forge_album_url(band, album["name"], album["id"])
-
-      {:error, message} ->
-        message
-    end
-  end
-
-  @doc """
-  Handle help command
-  """
-  def help([]) do
-    "Using prefix #{Application.fetch_env!(:o2m, :prefix)}, available commands are :
-    - **album**: to get album info (try _#{Application.fetch_env!(:o2m, :prefix)}help album_)
-    - **band**: to get page band info (try _#{Application.fetch_env!(:o2m, :prefix)}help band_)
-    - **help**: to get this help message"
-  end
-
-  # If an arg is provided
-  def help(args) do
-    case Enum.join(args, " ") do
-      "album" ->
-        "Here is an example of \`album\` command : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}album korn // follow the leader \`\`\`"
-
-      "band" ->
-        "Here is an example of \`band\` command : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}band korn\`\`\`"
-
-      _ ->
-        "Command not available"
-    end
   end
 end
