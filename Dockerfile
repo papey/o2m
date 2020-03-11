@@ -1,6 +1,6 @@
 # From latest elixir version
 # First build the app
-FROM elixir:1.9 as builder
+FROM elixir:1.10 as builder
 
 # Declare args
 ARG REVISION
@@ -42,7 +42,7 @@ COPY . .
 RUN mix release
 
 # App is build, setup runtime
-FROM elixir:1.9 AS runtime
+FROM elixir:1.10 AS runtime
 
 # Install openssl
 RUN apt-get update && apt-get install -y openssl libtinfo-dev
@@ -58,5 +58,3 @@ RUN chown -R o2m: ./prod
 USER o2m
 
 CMD ["./prod/rel/o2m/bin/o2m", "start"]
-
-
