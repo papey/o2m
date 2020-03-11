@@ -21,3 +21,8 @@ config :o2m,
   chan: System.get_env("O2M_CHAN_ID"),
   # RSS podcast feed urls
   feed_urls: System.get_env("O2M_FEED_URLS")
+
+config :logger, :console,
+  format: "$time $metadata[$level] $message\n",
+  metadata: [:url, :init, :data, :state],
+  level: :info

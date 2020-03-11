@@ -3,6 +3,7 @@ defmodule Jobs do
   A module used to schedule jobs
   """
   use GenServer
+  require Logger
   alias Nostrum.Api
 
   ## GenServer API
@@ -10,6 +11,7 @@ defmodule Jobs do
   Starts the GenServer
   """
   def start_link(init) do
+    Logger.info("Starting job link", init: init)
     GenServer.start_link(__MODULE__, init)
   end
 
@@ -17,6 +19,7 @@ defmodule Jobs do
   Init GenServer state
   """
   def init(init) do
+    Logger.info("Init job link", init: init)
     last = Feed.get_last_episode(init)
     state = {init, last}
     {:ok, state, {:continue, :work}}
@@ -26,6 +29,8 @@ defmodule Jobs do
   Init the scheduled loop
   """
   def handle_continue(:work, state) do
+    {url, _} = state
+    Logger.info("Continue received", url: url)
     {:noreply, work_then_reschedule(state)}
   end
 
@@ -33,6 +38,8 @@ defmodule Jobs do
   handle loop event and reloop
   """
   def handle_info(:work, state) do
+    {url, _} = state
+    Logger.info("Info received", url: url)
     {:noreply, work_then_reschedule(state)}
   end
 
@@ -62,10 +69,12 @@ defmodule Jobs do
         # Post a message
         Api.create_message(from_env_to_int(:o2m, :chan), Feed.new_message(new))
         # Update state
+        Logger.info("Updating state", url: url)
         {url, new}
 
       _ ->
         # Keep old state
+        Logger.info("Keeping the old state", url: url)
         state
     end
   end
