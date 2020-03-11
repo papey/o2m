@@ -47,7 +47,16 @@ defmodule O2M do
 
         # if a command is not already catch by a case, this is not a supported command
         {:ok, cmd, _, _} ->
-          Api.create_message(msg.channel_id, "Sorry but **#{cmd}** command is not available")
+          case cmd do
+            "" ->
+              Api.create_message(
+                msg.channel_id,
+                "Sorry but I need at least a command to do something"
+              )
+
+            _ ->
+              Api.create_message(msg.channel_id, "Sorry but **#{cmd}** command is not available")
+          end
 
         # If something goes realy wrong, do not care
         _ ->
