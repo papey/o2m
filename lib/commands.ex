@@ -45,6 +45,8 @@ In order to get specific help for a command type `#{prefix}command help`"
   end
 
   defmodule Mo do
+    import Metalorgie
+
     @moduledoc """
     Mo module handle call to mo command
     """
@@ -77,9 +79,9 @@ In order to get specific help for a command type `#{prefix}command help`"
     Handle band command and search for a band on Metalorgie
     """
     def band(args) do
-      case Metalorgie.get_band(args) do
+      case get_band(args) do
         {:ok, band} ->
-          Metalorgie.forge_band_url(band["slug"])
+          forge_band_url(band["slug"])
 
         {:error, msg} ->
           msg
@@ -98,9 +100,9 @@ In order to get specific help for a command type `#{prefix}command help`"
       [band | album] =
         Enum.join(args, " ") |> String.split("//") |> Enum.map(fn e -> String.trim(e) end)
 
-      case Metalorgie.get_album(String.split(band, " "), String.split(Enum.at(album, 0), " ")) do
+      case get_album(String.split(band, " "), String.split(Enum.at(album, 0), " ")) do
         {:ok, album} ->
-          Metalorgie.forge_album_url(band, album["name"], album["id"])
+          forge_album_url(band, album["name"], album["id"])
 
         {:error, message} ->
           message
