@@ -41,6 +41,9 @@ defmodule O2M do
         {:ok, "mo", sub, args} ->
           Api.create_message(msg.channel_id, O2M.Commands.Mo.handle(sub, args))
 
+        {:ok, "tmpl", sub, args} ->
+          Api.create_message(msg.channel_id, O2M.Commands.Tmpl.handle(sub, args))
+
         # if command is help with args and subcommand
         {:ok, "help", _, _} ->
           Api.create_message(msg.channel_id, O2M.Commands.Help.handle(prefix))
