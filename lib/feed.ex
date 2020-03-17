@@ -57,6 +57,10 @@ defmodule Feed do
   Returns a string presenting the new show
   """
   def new_message(show) do
-    "A new #{show.show} episode is available ! Check out \"#{show.title}\" at #{show.url}"
+    Announcements.announce(%{
+      "show" => show.show,
+      "title" => show.title,
+      "url" => show.url
+    })
   end
 end
