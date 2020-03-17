@@ -49,7 +49,7 @@ RUN apt-get update && apt-get install -y openssl libtinfo-dev
 
 # Copy over the build artifact from the previous step and create a non root user
 RUN useradd o2m
-RUN mkdir /opt/o2m
+RUN mkdir -p /opt/o2m/dets
 WORKDIR /opt/o2m
 
 COPY --from=builder /opt/o2m/_build .
