@@ -50,7 +50,7 @@ Configuration is passed to o2m using environment variables
 - O2M_FEED_URLS (eg : https://feed.ausha.co/owAEhJ0qOPkb) from Ausha RSS page or Anchor RSS page. To enable multiple shows add , between each feed url (eg : https://feed.ausha.co/owAEhJ0qOPkb,https://feed.ausha.co/oLAxhNMl7P8y)
 - O2M_CHAN_ID from Discord to select channel used to post message from podcasts
 
-You can also configure O2M using `releases.esx`, see `example.exs` file inside
+You can also configure O2M using `config.esx`, see this file inside
 the `config` directory for real life examples.
 
 ## Running the tests
