@@ -20,9 +20,11 @@ config :o2m,
   # Channel ID
   chan: System.get_env("O2M_CHAN_ID"),
   # RSS podcast feed urls
-  feed_urls: System.get_env("O2M_FEED_URLS")
+  feed_urls: System.get_env("O2M_FEED_URLS"),
+  # DETS template file
+  tmpl_dets: System.get_env("O2M_TMPL_DETS", "/opt/o2m/dets/templates.dets")
 
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
-  metadata: [:url, :init, :data, :state],
+  metadata: [:url, :init, :data, :state, :template, :reason],
   level: :info
