@@ -148,7 +148,7 @@ defmodule Announcements do
             template: template
           )
 
-          {:warning, "Template not added, storage limit (#{@limit} reached"}
+          {:warning, "Template not added, storage limit (#{@limit}) reached"}
       end
     end
 
