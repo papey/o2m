@@ -10,7 +10,7 @@ monitor podcasts shows publications on [Ausha](https://ausha.co) or [Anchor](htt
 
 ### Prerequisites
 
-- [Elixir](https://www.rust-lang.org/)
+- [Elixir](https://elixir-lang.org/)
 
 ### Installing
 
