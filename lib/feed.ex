@@ -3,6 +3,8 @@ defmodule Feed do
   A simple module used to get information about a podcast
   """
 
+  require Logger
+
   @doc """
   Get last episode data from a show using RSS feed
 
@@ -12,16 +14,31 @@ defmodule Feed do
     HTTPoison.start()
 
     # Get rss feed
-    resp = HTTPoison.get!(url)
+    case HTTPoison.get(url) do
+      {:ok, resp} ->
+        case resp.status_code do
+          200 ->
+            # Parse feed
+            xml = ElixirFeedParser.parse(resp.body)
 
-    # Parse feed
-    xml = ElixirFeedParser.parse(resp.body)
+            # Get last episode
+            [last | _] = xml.entries
 
-    # Get last episode
-    last = Enum.at(xml.entries, 0)
+            # Return needed data
+            %{date: last.updated, title: last.title, url: last.url, show: xml.title}
 
-    # Return needed data
-    %{date: last.updated, title: last.title, url: last.url, show: xml.title}
+          _ ->
+            Logger.error("Received non 200 (ok) HTTP status code, sending :nodata atom",
+              code: resp.status_code
+            )
+
+            :nodata
+        end
+
+      {:error, message} ->
+        Logger.error("Error getting last episode", url: url, reason: message)
+        :nodata
+    end
   end
 
   @doc """

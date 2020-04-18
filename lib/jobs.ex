@@ -54,28 +54,42 @@ defmodule Jobs do
 
   defp work_then_reschedule(state) do
     # Fetch current state
-    {url, cur} = state
-
-    # Get last episode from feed
-    new = Feed.get_last_episode(url)
+    {url, last} = state
 
     # Wait
     Process.send_after(self(), :work, get_timer_config() * 1000)
 
-    # Is the last episode fetch a new one ?
-    case Feed.compare_dates(cur.date, new.date) do
-      # If so
-      -1 ->
-        # Post a message
-        Api.create_message(from_env_to_int(:o2m, :chan), Feed.new_message(new))
-        # Update state
-        Logger.info("Updating state", url: url)
-        {url, new}
-
-      _ ->
-        # Keep old state
-        Logger.info("Keeping the old state", url: url)
+    # Get last episode from feed
+    case Feed.get_last_episode(url) do
+      # If no data from new episode, return the old state
+      :nodata ->
         state
+
+      # If there is fresh data
+      new ->
+        # if no data, consider it as an init
+        case last do
+          :nodata ->
+            Logger.info("Setting up state after receiving no data", url: url)
+            {url, new}
+
+          # Pattern match the old date
+          %{:date => date, :show => _, :title => _, :url => _} ->
+            case Feed.compare_dates(date, new.date) do
+              # If so
+              -1 ->
+                # Post a message
+                Api.create_message(from_env_to_int(:o2m, :chan), Feed.new_message(new))
+                # Update state
+                Logger.info("Updating state", url: url)
+                {url, new}
+
+              _ ->
+                # Keep old state
+                Logger.info("Keeping the old state", url: url)
+                state
+            end
+        end
     end
   end
 
