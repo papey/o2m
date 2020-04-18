@@ -144,8 +144,12 @@ In order to get specific help for a command type `#{prefix}command help`"
     # If args provided
     def delete(args) do
       # get hash from args
-      [hash | _] =
-        Enum.join(args, " ") |> String.split("//") |> Enum.map(fn e -> String.trim(e) end)
+      hash =
+        Enum.join(args, " ")
+        |> String.split("//")
+        |> Enum.map(fn e -> String.trim(e) end)
+        |> Enum.at(0)
+        |> String.upcase()
 
       case Announcements.Storage.delete(hash) do
         :ok ->
