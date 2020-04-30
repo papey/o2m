@@ -57,4 +57,8 @@ RUN chown -R o2m: ./prod
 
 USER o2m
 
-CMD ["./prod/rel/o2m/bin/o2m", "start"]
+# default arg
+CMD ["start"]
+
+# default command
+ENTRYPOINT ["./prod/rel/o2m/bin/o2m"]
