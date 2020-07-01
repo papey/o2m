@@ -71,7 +71,7 @@ In order to get specific help for a command type `#{prefix}command help`"
           help(args)
 
         _ ->
-          "Sorry but subcommand **#{sub}** of command **mo** is not supported"
+          "Sorry but subcommand **#{sub}** of command **tmpl** is not supported"
       end
     end
 
