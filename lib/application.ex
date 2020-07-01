@@ -6,6 +6,7 @@ defmodule O2M.Application do
   use Application
   require Logger
   use DynamicSupervisor
+  alias Nostrum.Api
 
   def start(_type, _args) do
     # DynamicSupervisor setup
@@ -19,6 +20,11 @@ defmodule O2M.Application do
 
     # Start O2M main functions
     DynamicSupervisor.start_child(O2M.DynamicSupervisor, O2M)
+
+    nickname = Application.fetch_env!(:o2m, :nickname)
+    # Custom Username
+    Api.modify_current_user(username: "O2M")
+    Api.modify_current_user_nick!(623449948519923732, %{nick: nickname})
 
     # Add per feed jobs
     case add_jobs() do

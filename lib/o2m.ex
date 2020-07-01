@@ -12,12 +12,7 @@ defmodule O2M do
   """
   def start_link() do
     # Start Consumer
-    pid = Consumer.start_link(__MODULE__)
-    # Change username
-    {:ok, val} = Application.fetch_env(:o2m, :username)
-    Api.modify_current_user(username: val)
-    # Return pid
-    pid
+    Consumer.start_link(__MODULE__)
   end
 
   @doc """
