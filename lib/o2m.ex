@@ -19,10 +19,8 @@ defmodule O2M do
   Handle events from Discord
   """
   def handle_event({:MESSAGE_CREATE, msg, _ws_state}) do
-    # fetch username value
-    {:ok, username} = Application.fetch_env(:o2m, :username)
     # Ensure this is not the bot talking to itself
-    if msg.author.username != username do
+    if msg.author.username != "O2M" do
       # fetch prefix
       {:ok, prefix} = Application.fetch_env(:o2m, :prefix)
 
