@@ -22,9 +22,11 @@ defmodule O2M.Application do
     DynamicSupervisor.start_child(O2M.DynamicSupervisor, O2M)
 
     nickname = Application.fetch_env!(:o2m, :nickname)
+    gid = from_env_to_int(:o2m, :guild)
+
     # Custom Username
     Api.modify_current_user(username: "O2M")
-    Api.modify_current_user_nick!(623449948519923732, %{nick: nickname})
+    Api.modify_current_user_nick!(gid, %{nick: nickname})
 
     # Add per feed jobs
     case add_jobs() do
@@ -41,6 +43,12 @@ defmodule O2M.Application do
 
   def init(_init_arg) do
     DynamicSupervisor.init(strategy: :one_for_one)
+  end
+
+  def from_env_to_int(app, val) do
+    {:ok, v} = Application.fetch_env(app, val)
+    {ret, ""} = Integer.parse(v)
+    ret
   end
 
   # Generated jobs inside an enum for each podcast to watch

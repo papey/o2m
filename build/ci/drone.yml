@@ -19,6 +19,8 @@ steps:
         from_secret: o2m_feed_urls
       02M_CHAN_ID:
         from_secret: o2m_chan_id
+      O2M_GUILD_ID:
+        from_secret: o2m_guild_id
     commands:
       - mix local.hex --force
       - mix local.rebar --force
