@@ -25,7 +25,7 @@ defmodule O2M.Application do
     gid = from_env_to_int(:o2m, :guild)
 
     # Custom Username
-    Api.modify_current_user(username: "O2M")
+    Api.modify_current_user(username: nickname)
     Api.modify_current_user_nick!(gid, %{nick: nickname})
 
     # Add per feed jobs

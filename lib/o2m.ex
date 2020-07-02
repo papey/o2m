@@ -20,7 +20,8 @@ defmodule O2M do
   """
   def handle_event({:MESSAGE_CREATE, msg, _ws_state}) do
     # Ensure this is not the bot talking to itself
-    if msg.author.username != "O2M" do
+    nickname = Application.fetch_env!(:o2m, :nickname)
+    if msg.author.username != nickname do
       # fetch prefix
       {:ok, prefix} = Application.fetch_env(:o2m, :prefix)
 
