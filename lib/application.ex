@@ -63,7 +63,7 @@ defmodule O2M.Application do
         {:none, "There is no feed URL configured"}
 
       {:ok, conf} ->
-        case String.split(conf, ",") do
+        case String.split(conf, " ") do
           [] ->
             {:none, "There is no URL configured"}
 
