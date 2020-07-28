@@ -79,7 +79,11 @@ defmodule Jobs do
               # If so
               -1 ->
                 # Post a message
-                Api.create_message(O2M.Application.from_env_to_int(:o2m, :chan), Feed.new_message(new))
+                Api.create_message(
+                  O2M.Application.from_env_to_int(:o2m, :chan),
+                  Feed.new_message(new)
+                )
+
                 # Update state
                 Logger.info("Updating state", url: url)
                 {url, new}
@@ -92,5 +96,4 @@ defmodule Jobs do
         end
     end
   end
-
 end

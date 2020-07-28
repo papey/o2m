@@ -23,5 +23,3 @@ erl_crash.dump
 o2m-*.tar
 
 .elixir_ls
-
-.formatter.exs
