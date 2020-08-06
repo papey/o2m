@@ -40,7 +40,7 @@ defmodule Jobs do
   def handle_info(:work, state) do
     {url, _} = state
     Logger.info("Info received", url: url)
-    {:noreply, work_then_reschedule(state)}
+    {:noreply, state, {:continue, :work}}
   end
 
   @doc """
