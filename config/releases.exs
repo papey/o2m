@@ -30,3 +30,6 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:url, :init, :data, :state, :template, :reason, :code],
   level: :info
+
+config :porcelain,
+  driver: Porcelain.Driver.Basic
