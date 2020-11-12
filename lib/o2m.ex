@@ -43,6 +43,26 @@ defmodule O2M do
         {:ok, "help", _, _} ->
           Api.create_message(msg.channel_id, O2M.Commands.Help.handle(prefix))
 
+        # if command is blind test
+        {:ok, "bt", sub, args} ->
+          case BlindTest.configured?() do
+            # Sometimes, handle does not return a message since it's heavily use reaction emojis
+            true ->
+              case O2M.Commands.Bt.handle(sub, args, msg) do
+                :no_message ->
+                  nil
+
+                message ->
+                  Api.create_message(msg.channel_id, message)
+              end
+
+            false ->
+              Api.create_message(
+                msg.channel_id,
+                "Sorry but blind test is not configured on this Discord Guild 😢"
+              )
+          end
+
         # if a command is not already catch by a case, this is not a supported command
         {:ok, cmd, _, _} ->
           case cmd do
@@ -56,8 +76,31 @@ defmodule O2M do
               Api.create_message(msg.channel_id, "Sorry but **#{cmd}** command is not available")
           end
 
-        # If something goes realy wrong, do not care
+        # if no command, check if it's from a blind-test channel and if channel is in guessing mode
         _ ->
+          case BlindTest.process() do
+            :none ->
+              :ignore
+
+            {:one, _pid} ->
+              channel_id = O2M.Application.from_env_to_int(:o2m, :bt_chan)
+
+              if channel_id == msg.channel_id && msg.content != "" && BlindTest.guessing?() &&
+                   BlindTest.plays?(msg.author.id) do
+                # validate answer
+                case Game.validate(msg.content, msg.author.id) do
+                  {:ok, status, points} ->
+                    # react to validation
+                    BlindTest.react_to_validation(msg, channel_id, status, points)
+
+                  :not_guessing ->
+                    :ignore
+                end
+              else
+                :ignore
+              end
+          end
+
           :ignore
       end
     end

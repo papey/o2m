@@ -1,6 +1,8 @@
 # From latest elixir version
 # First build the app
-FROM elixir:1.10 as builder
+FROM elixir:1.11 as builder
+
+RUN apt-get update && apt-get install -y openssl
 
 # Declare args
 ARG REVISION
@@ -42,18 +44,30 @@ COPY . .
 RUN mix release
 
 # App is build, setup runtime
-FROM elixir:1.10 AS runtime
+FROM elixir:1.11 AS runtime
 
 # Install openssl
-RUN apt-get update && apt-get install -y openssl libtinfo-dev
+RUN apt-get update && apt-get install -y openssl \
+    libtinfo-dev \
+    ffmpeg \
+    python3 \
+    python3-pip
+
+# Install latest youtube-dl from pip
+RUN pip3 install youtube-dl
 
 # Copy over the build artifact from the previous step and create a non root user
 RUN useradd o2m
+# youtube-dl search for a home directory
+RUN mkdir -p /home/o2m/
+RUN chown -R o2m:o2m /home/o2m/
+
 RUN mkdir -p /opt/o2m/dets
+
 WORKDIR /opt/o2m
 
 COPY --from=builder /opt/o2m/_build .
-RUN chown -R o2m: ./prod
+RUN chown -R o2m:o2m ./prod
 
 USER o2m
 

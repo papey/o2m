@@ -32,7 +32,9 @@ defmodule O2M.MixProject do
       {:httpoison, "~> 1.6"},
       {:elixir_feed_parser, "~> 0.0.1"},
       {:timex, "~> 3.5"},
-      {:jason, "~> 1.1"}
+      {:jason, "~> 1.1"},
+      {:tesla, "~> 1.3.0"},
+      {:gen_state_machine, "~> 3.0.0"}
     ]
   end
 end

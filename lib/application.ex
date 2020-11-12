@@ -12,14 +12,12 @@ defmodule O2M.Application do
     # DynamicSupervisor setup
     # Children spec
     children = [
+      O2M,
       {DynamicSupervisor, strategy: :one_for_one, name: O2M.DynamicSupervisor}
     ]
 
     # Start Supervisor
-    Supervisor.start_link(children, strategy: :one_for_one)
-
-    # Start O2M main functions
-    DynamicSupervisor.start_child(O2M.DynamicSupervisor, O2M)
+    {:ok, _} = Supervisor.start_link(children, strategy: :one_for_one)
 
     nickname = Application.fetch_env!(:o2m, :nickname)
     gid = from_env_to_int(:o2m, :guild)
@@ -37,6 +35,22 @@ defmodule O2M.Application do
         Logger.warn(message)
     end
 
+    # start the monitor in the dynamic supervisor
+    if BlindTest.configured?() do
+      Logger.info("Starting game monitor")
+
+      DynamicSupervisor.start_child(
+        O2M.DynamicSupervisor,
+        %{
+          id: Game.Monitor,
+          start: {Game.Monitor, :start_link, [from_env_to_int(:o2m, :bt_chan)]},
+          restart: :permanent,
+          shutdown: 4000,
+          type: :worker
+        }
+      )
+    end
+
     # Return {:ok, pid}
     {:ok, self()}
   end
@@ -46,8 +60,7 @@ defmodule O2M.Application do
   end
 
   def from_env_to_int(app, val) do
-    {:ok, v} = Application.fetch_env(app, val)
-    {ret, ""} = Integer.parse(v)
+    {ret, ""} = Integer.parse(Application.fetch_env!(app, val))
     ret
   end
 
@@ -55,7 +68,7 @@ defmodule O2M.Application do
   defp add_jobs() do
     Logger.info("Application is starting per feed jobs")
 
-    case(Application.fetch_env(:o2m, :feed_urls)) do
+    case Application.fetch_env(:o2m, :feed_urls) do
       {:ok, nil} ->
         {:none, "There is no feed URL configured"}
 
