@@ -4,7 +4,7 @@
 
 O2M is an [Elixir](https://elixir-lang.org) Discord bot capable of :
 
-- organize and un blind tests
+- organize and run blind tests
 - fetching data about metal bands (baked up by [Metalorgie](https://metalorgie.com))
 - monitor podcasts shows publications on [Ausha](https://ausha.co) or [Anchor](https://anchor.fm).
 
