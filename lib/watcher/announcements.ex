@@ -134,7 +134,7 @@ defmodule Announcements do
     Store template if checks pass
     """
     def put(template) do
-      case(length(get_all())) do
+      case length(get_all()) do
         l when l < @limit ->
           path = to_charlist(Application.fetch_env!(:o2m, :tmpl_dets))
           {:ok, table} = :dets.open_file(path, type: :set)

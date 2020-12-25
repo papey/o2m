@@ -5,7 +5,9 @@ import Config
 config :nostrum,
   # Discord token
   token: System.get_env("DISCORD_TOKEN"),
-  num_shards: :auto
+  num_shards: :auto,
+  gateway_intents:
+    if(System.get_env("DISCORD_GW_INTENTS") == "yes", do: :all, else: :nonprivileged)
 
 # o2m configuration
 config :o2m,
@@ -24,11 +26,32 @@ config :o2m,
   # RSS podcast feed urls
   feed_urls: System.get_env("O2M_FEED_URLS"),
   # DETS template file
-  tmpl_dets: System.get_env("O2M_TMPL_DETS", "/opt/o2m/dets/templates.dets")
+  tmpl_dets: System.get_env("O2M_TMPL_DETS", "/opt/o2m/dets/templates.dets"),
+  # Blind tests
+  # admin role for blind-test
+  bt_admin: System.get_env("O2M_BT_ADMIN"),
+  # text channel for blind-tests
+  bt_chan: System.get_env("O2M_BT_CHAN_ID"),
+  # text channel for blind-tests
+  bt_vocal: System.get_env("O2M_BT_VOCAL_ID"),
+  # cache diredctory for songs
+  bt_cache: System.get_env("O2M_BT_CACHE", "/tmp/o2m/cache")
 
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
-  metadata: [:url, :init, :data, :state, :template, :reason, :code],
+  metadata: [
+    :url,
+    :init,
+    :data,
+    :state,
+    :template,
+    :reason,
+    :code,
+    :retries,
+    :current,
+    :sub,
+    :message
+  ],
   level: :info
 
 config :porcelain,
