@@ -35,6 +35,7 @@ steps:
       password:
         from_secret: docker_password
       repo: papey/o2m
+      auto_tag: true
       build_args:
         - REVISION=$$CI_COMMIT
         - RELEASE_TAG=$$CI_TAG
