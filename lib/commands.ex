@@ -359,9 +359,9 @@ In order to get specific help for a command type `#{prefix}command help`"
               :no_message
 
             {:ok, :duplicate} ->
-              # 🚫
+              # 👌
               Nostrum.Api.create_reaction(channel_id, msg.id, %Nostrum.Struct.Emoji{
-                name: Emojos.get(:duplicate_join)
+                name: Emojos.get(:joined)
               })
 
               :no_message
