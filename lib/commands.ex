@@ -675,7 +675,7 @@ In order to get specific help for a command type `#{prefix}command help`"
 
     - **init**: inits a new blind test, this message should be a private message to the bot with a `.csv` attached to it (`csv format: youtube.com/link,artist,title`)
     - **start**: starts the blind test if ready, this message should be send in the dedicated blind test text channel
-    - **destroy**: destroy the running blind test, this message should be send in the dedicated blind test text channel\n
+    - **destroy**: destroy the running blind test, this message should be send in the dedicated blind test text channel
 
     __Players commands__ (only in dedicated bind test text channel)
 
