@@ -49,6 +49,19 @@ defmodule O2M.Application do
           type: :worker
         }
       )
+
+      Logger.info("Starting party agent")
+
+      DynamicSupervisor.start_child(
+        O2M.DynamicSupervisor,
+        %{
+          id: Party,
+          start: {Party, :start_link, []},
+          restart: :permanent,
+          shutdown: 4000,
+          type: :worker
+        }
+      )
     end
 
     # Return {:ok, pid}

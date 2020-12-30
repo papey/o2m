@@ -29,7 +29,7 @@ defmodule BlindTest do
 
   def init([], _, _), do: "Error no attachements found in this message"
 
-  def init(attachements, author, from_channel) do
+  def init(attachements, author, from_channel, args) do
     guild = O2M.Application.from_env_to_int(:o2m, :guild)
     channel_id = O2M.Application.from_env_to_int(:o2m, :bt_chan)
     cache = Application.get_env(:o2m, :bt_cache)
@@ -44,9 +44,12 @@ defmodule BlindTest do
                Discord.channel(channel_id)
              }"
            ) do
+      # use provided args and fallback to filename as default
+      playlist_name = if args == [], do: file.filename, else: Enum.join(args, " ")
+
       {:ok, _} =
         Game.start(
-          {author.id, guild, channel_id, file.url},
+          {author.id, guild, channel_id, file.url, playlist_name},
           {guess_entries, cache, channel_id, from_channel}
         )
 

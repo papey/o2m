@@ -46,6 +46,8 @@ defmodule Game do
       guessed: [],
       # list of all players
       players: MapSet.new(),
+      # playlist name from csv filename
+      name: "",
       ready: false
     ]
   end
@@ -65,7 +67,7 @@ defmodule Game do
 
   def get_medals(), do: @medals
 
-  def start({author_id, guild_id, channel_id, playlist_url}, dl_data) do
+  def start({author_id, guild_id, channel_id, playlist_url, playlist_name}, dl_data) do
     GenStateMachine.start(
       __MODULE__,
       {:waiting,
@@ -74,7 +76,8 @@ defmodule Game do
          author_id: author_id,
          playlist_url: playlist_url,
          guild_id: guild_id,
-         channel_id: channel_id
+         channel_id: channel_id,
+         name: playlist_name
        }},
       name: __MODULE__
     )
@@ -126,7 +129,7 @@ defmodule Game do
     Nostrum.Api.create_message(
       data.channel_id,
       embed: %Nostrum.Struct.Embed{
-        :title => "Blind test is ready !",
+        :title => "Blind test \"#{data.name}\" is ready !",
         :description => "Watch out ! Join vocal channel !",
         :fields => [
           %Nostrum.Struct.Embed.Field{
@@ -335,6 +338,10 @@ defmodule Game do
         :description => "Boup bip boup !",
         :fields => [
           %Nostrum.Struct.Embed.Field{
+            name: "Name",
+            value: data.name
+          },
+          %Nostrum.Struct.Embed.Field{
             name: "Join command",
             value: "`#{Application.fetch_env!(:o2m, :prefix)}bt join`"
           }
@@ -453,6 +460,8 @@ defmodule Game do
 
     Leaderboard.update(data.scores)
 
+    Party.add(%Party.Game{name: data.name, scores: data.scores})
+
     Nostrum.Api.create_message(data.channel_id, generate_ranking(data.scores))
 
     :keep_state_and_data
@@ -494,7 +503,7 @@ defmodule Game do
     {:keep_state_and_data, [{:reply, from, {:ok, data.author_id}}]}
   end
 
-  defp generate_ranking(scores) do
+  def generate_ranking(scores) do
     scores
     |> Enum.to_list()
     |> Enum.sort(fn {_k1, v1}, {_k2, v2} -> v1 > v2 end)

@@ -298,14 +298,14 @@ In order to get specific help for a command type `#{prefix}command help`"
     @doc """
     Handle blind test init command
     """
-    def init(msg) do
+    def init(msg, args) do
       adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
       guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
       with :private <- channel_type(msg.channel_id),
            :member <- is_member(msg.author, adm, guild_id),
            :none <- BlindTest.process() do
-        BlindTest.init(msg.attachments, msg.author, msg.channel_id)
+        BlindTest.init(msg.attachments, msg.author, msg.channel_id, args)
       else
         :not_member ->
           "User do not have permission to init a blind test"
@@ -686,6 +686,12 @@ In order to get specific help for a command type `#{prefix}command help`"
     - **ranking**: list current ranking for this session
     - **status**: fetch blind test status
 
+    __Party commands__
+    - **party overview**: get an overview of the current party
+    - **party list**: list all the games for this party
+    - **party get <ID>**: get data about a specific game
+    - **party reset**: reset party data (admin)
+
     __Leaderboard commands__
 
     - **lboard top**: print top 15 leaderboard (admin)
@@ -810,6 +816,81 @@ In order to get specific help for a command type `#{prefix}command help`"
       "Unsupported `lboard` instruction"
     end
 
+    def party(msg, ["reset" | _]) do
+      adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
+      guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
+
+      case Discord.is_member(msg.author, adm, guild_id) do
+        :member ->
+          Party.reset()
+          "Party data cleared !"
+
+        :not_member ->
+          "User do not have permission to reset party data"
+      end
+    end
+
+    def party(_msg, ["list" | _]) do
+      case Party.list() do
+        [] ->
+          "No games yet in this party"
+
+        results ->
+          Enum.reduce(results, "**List of games for this party :**\n", fn {id, result}, acc ->
+            "#{acc}\n\t- ID : #{id} | Name : #{result.name}"
+          end)
+      end
+    end
+
+    def party(_msg, ["overview" | _]) do
+      case Party.list() do
+        [] ->
+          "No games yet in this party"
+
+        games ->
+          {names, total} =
+            Enum.reduce(games, {[], %{}}, fn {_id, game}, {names, total} ->
+              next_total =
+                Enum.reduce(game.scores, total, fn {id, score}, acc ->
+                  {_, updated} =
+                    Map.get_and_update(acc, id, fn current ->
+                      if current == nil do
+                        {nil, score}
+                      else
+                        {current, score + current}
+                      end
+                    end)
+
+                  updated
+                end)
+
+              {names ++ ["`#{game.name}`"], next_total}
+            end)
+
+          "**All games for this party :** #{Enum.join(names, " / ")}\n\n**Ranking for this party :\n**#{
+            Game.generate_ranking(total)
+          }"
+      end
+    end
+
+    def party(_msg, ["get"]), do: "This command needs a game ID"
+
+    def party(_msg, ["get", id | _]) do
+      case Integer.parse(id) do
+        {val, _} ->
+          case Party.get(val) do
+            [] ->
+              "No found for this game ID"
+
+            [{_id, game} | _] ->
+              "Ranking for game **#{game.name}** :\n#{Game.generate_ranking(game.scores)}"
+          end
+
+        _ ->
+          "Result ID must be a valid integer value"
+      end
+    end
+
     def bam() do
       [
         "https://youtu.be/iRbnY8EK4Ew",
@@ -832,7 +913,7 @@ In order to get specific help for a command type `#{prefix}command help`"
 
       case sub do
         "init" ->
-          init(msg)
+          init(msg, args)
 
         "join" ->
           join(msg)
@@ -873,6 +954,9 @@ In order to get specific help for a command type `#{prefix}command help`"
 
         "check" ->
           check(msg)
+
+        "party" ->
+          party(msg, args)
 
         _ ->
           "Sorry but subcommand **#{sub}** of command **bt** is not supported"
