@@ -107,7 +107,7 @@ defmodule Game do
         {:next_state, :guessing,
          %{
            data
-           | :to_guess => data.to_guess,
+           | :to_guess => Enum.reverse(data.to_guess),
              :total => length(data.to_guess)
          }, [{:reply, from, {:ok, data.channel_id}}]}
     end

@@ -76,53 +76,49 @@ defmodule BlindTest do
   def parse_csv(content) do
     Logger.info("Parsing CSV", data: content)
 
-    parsed =
-      String.replace(content, "\r", "")
-      |> String.replace(";", ",")
-      |> String.split("\n")
-      |> Enum.with_index()
-      |> Enum.reduce_while({:ok, MapSet.new()}, fn {l, i}, {:ok, acc} ->
-        # skips comments and emtpy lines
-        if !String.starts_with?(l, "#") and l != "" do
-          case String.replace(l, "\"", "") |> String.split(",") do
-            [url, artists, titles] ->
-              uri = URI.parse(url)
+    String.replace(content, "\r", "")
+    |> String.replace(";", ",")
+    |> String.split("\n")
+    |> Enum.with_index()
+    |> Enum.reduce_while({:ok, []}, fn {l, i}, {:ok, acc} ->
+      # skips comments and emtpy lines
+      if !String.starts_with?(l, "#") and l != "" do
+        case String.replace(l, "\"", "") |> String.split(",") do
+          [url, artists, titles] ->
+            uri = URI.parse(url)
 
-              cond do
-                !String.valid?(l) ->
-                  {:halt,
-                   {:error,
-                    "Line #{i + 1} contains an invalid character, ensure it contains only UTF-8 characters"}}
+            cond do
+              !String.valid?(l) ->
+                {:halt,
+                 {:error,
+                  "Line #{i + 1} contains an invalid character, ensure it contains only UTF-8 characters"}}
 
-                MapSet.size(acc) > @playlist_size_limit ->
-                  {:halt, {:error, "Playlist size limit reached #{@playlist_size_limit}"}}
+              length(acc) > @playlist_size_limit ->
+                {:halt, {:error, "Playlist size limit reached #{@playlist_size_limit}"}}
 
-                String.contains?(uri.host, "youtu.be") || String.contains?(uri.host, "youtube") ->
-                  {:cont,
-                   {:ok,
-                    MapSet.put(acc, %GuessEntry{
-                      url: url,
-                      artists: Enum.map(String.split(artists, "|"), &String.trim(&1)),
-                      titles: Enum.map(String.split(titles, "|"), &String.trim(&1))
-                    })}}
+              String.contains?(uri.host, "youtu.be") || String.contains?(uri.host, "youtube") ->
+                {:cont,
+                 {:ok,
+                  acc ++
+                    [
+                      %GuessEntry{
+                        url: url,
+                        artists: Enum.map(String.split(artists, "|"), &String.trim(&1)),
+                        titles: Enum.map(String.split(titles, "|"), &String.trim(&1))
+                      }
+                    ]}}
 
-                true ->
-                  {:halt,
-                   {:error, "URL #{url} is not a valid youtube url (line #{i + 1}: `#{l}`)"}}
-              end
+              true ->
+                {:halt, {:error, "URL #{url} is not a valid youtube url (line #{i + 1}: `#{l}`)"}}
+            end
 
-            _ ->
-              {:halt, {:error, "Can't parse line #{i + 1}: `#{l}`"}}
-          end
-        else
-          {:cont, {:ok, acc}}
+          _ ->
+            {:halt, {:error, "Can't parse line #{i + 1}: `#{l}`"}}
         end
-      end)
-
-    case parsed do
-      {:ok, mapset} -> {:ok, MapSet.to_list(mapset)}
-      error -> error
-    end
+      else
+        {:cont, {:ok, acc}}
+      end
+    end)
   end
 
   @doc """
