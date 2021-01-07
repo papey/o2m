@@ -716,7 +716,6 @@ In order to get specific help for a command type `#{prefix}command help`"
 
       When joining :
       \t #{Emojos.get(:joined)}: message author joined the game
-      \t #{Emojos.get(:duplicate_join)}: message author already joined the game
 
       When guessing :
       \t answer validation :
