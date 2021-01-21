@@ -216,6 +216,9 @@ In order to get specific help for a command type `#{prefix}command help`"
         "help" ->
           help(args)
 
+        "teuton" ->
+          "https://www.youtube.com/watch?v=WmlshlqXD54"
+
         _ ->
           "Sorry but subcommand **#{sub}** of command **mo** is not supported"
       end
