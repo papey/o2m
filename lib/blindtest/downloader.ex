@@ -51,13 +51,14 @@ defmodule Downloader do
     use GenServer
 
     def start_link(stack) do
+      IO.inspect(stack)
       GenServer.start_link(__MODULE__, stack, name: __MODULE__)
     end
 
     @moduledoc """
     Worker module downloading files
     """
-    def init({songs, cache, channel_id, private_channel_id}) do
+    def init({songs, cache, channel_id, _private_channel_id, _guess_duration} = stack) do
       Logger.info("Starting Downloader worker", data: songs)
 
       # create cache directory if needed
@@ -65,17 +66,17 @@ defmodule Downloader do
         {:error, reason} ->
           Api.create_message(
             channel_id,
-            "__Downloader status update__: cache directory creation failed, all downloads aborted"
+            "__Downloader status update__: cache directory creation failed, downloads aborted"
           )
 
           {:stop, reason}
 
         :ok ->
-          {:ok, {songs, cache, channel_id, private_channel_id}, {:continue, :work}}
+          {:ok, stack, {:continue, :work}}
       end
     end
 
-    def handle_continue(:work, {[], _cache, channel_id, private_channel_id}) do
+    def handle_continue(:work, {[], _cache, channel_id, private_channel_id, _guess_duration}) do
       for channel <- [channel_id, private_channel_id] do
         Api.create_message(
           channel,
@@ -96,7 +97,10 @@ defmodule Downloader do
       {:stop, :normal, []}
     end
 
-    def handle_continue(:work, {[current | rest], cache, channel_id, private_channel_id}) do
+    def handle_continue(
+          :work,
+          {[current | rest], cache, channel_id, private_channel_id, guess_duration}
+        ) do
       Logger.info("Downloader worker, work in progress", current: current, data: rest)
 
       with {:one, _} = BlindTest.process(),
@@ -122,7 +126,7 @@ defmodule Downloader do
               Timex.Duration.to_time!(%Timex.Duration{
                 microseconds: 0,
                 megaseconds: 0,
-                seconds: ts + 50
+                seconds: ts + trunc(guess_duration * 1.5)
               })
 
             case System.cmd("ffmpeg", [
@@ -178,7 +182,8 @@ defmodule Downloader do
         end
       end
 
-      {:noreply, {rest, cache, channel_id, private_channel_id}, {:continue, :work}}
+      {:noreply, {rest, cache, channel_id, private_channel_id, guess_duration},
+       {:continue, :work}}
     end
   end
 end

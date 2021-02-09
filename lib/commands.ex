@@ -722,9 +722,9 @@ In order to get specific help for a command type `#{prefix}command help`"
 
       When guessing :
       \t answer validation :
-      \t\t #{Emojos.get(:both)}: message author found both artist and title
-      \t\t #{Emojos.get(:artist)}: message author found the artist
-      \t\t #{Emojos.get(:title)}: message author found the title
+      \t\t #{Emojos.get(:both)}: message author found both fields
+      \t\t #{Emojos.get(:f1)}: message author found the first field
+      \t\t #{Emojos.get(:f2)}: message author found the second field
       \t\t #{Emojos.get(:already)}: message author found an answer, but too late !
       \t\t if no reactions added user answer is wrong
       \t pass
@@ -735,9 +735,9 @@ In order to get specific help for a command type `#{prefix}command help`"
 
       Only the first get the points !
 
-      \t - artist and title found in the same message : 8 points
-      \t - artist found : 2 points
-      \t - title found : 3 points
+      \t - both fields in the same message : 8 points
+      \t - first field  found : 2 points
+      \t - second field found : 3 points
 
       "
     end

@@ -13,8 +13,8 @@ defmodule Game do
       :entry,
       :pass,
       :started_at,
-      artist_found: false,
-      title_found: false,
+      f1_found: false,
+      f2_found: false,
       failed: false
     ]
   end
@@ -48,26 +48,20 @@ defmodule Game do
       players: MapSet.new(),
       # playlist name from csv filename
       name: "",
-      ready: false
+      ready: false,
+      # config
+      config: %BlindTest.Config{}
     ]
   end
 
-  # default timers
-  @guess_timeout 45 * 1000
-  @transition_timeout 15 * 1000
-  @transition_notification_timeout 3 * 1000
-
-  # maximum play time
-  @max_play_time @guess_timeout * 2
-
   # points earned by players
-  @points %{:both => 8, :title => 3, :artist => 2}
+  @points %{:both => 8, :f2 => 3, :f1 => 2}
 
   @medals %{1 => "🥇", 2 => "🥈", 3 => "🥉"}
 
   def get_medals(), do: @medals
 
-  def start({author_id, guild_id, channel_id, playlist_url, playlist_name}, dl_data) do
+  def start({author_id, guild_id, channel_id, playlist_url, playlist_name, config}, dl_data) do
     GenStateMachine.start(
       __MODULE__,
       {:waiting,
@@ -77,7 +71,8 @@ defmodule Game do
          playlist_url: playlist_url,
          guild_id: guild_id,
          channel_id: channel_id,
-         name: playlist_name
+         name: playlist_name,
+         config: config
        }},
       name: __MODULE__
     )
@@ -149,17 +144,17 @@ defmodule Game do
 
     status =
       case BlindTest.verify_answer(current_guess.entry, answer) do
-        :title ->
-          (!current_guess.title_found && :title) || :already
+        :f2 ->
+          (!current_guess.f2_found && :f2) || :already
 
-        :artist ->
-          (!current_guess.artist_found && :artist) || :already
+        :f1 ->
+          (!current_guess.f1_found && :f1) || :already
 
         :both ->
-          if !current_guess.artist_found && !current_guess.title_found do
+          if !current_guess.f1_found && !current_guess.f2_found do
             :both
           else
-            (!current_guess.artist_found && :artist) || :title
+            (!current_guess.f1_found && :f1) || :f2
           end
 
         value ->
@@ -175,8 +170,8 @@ defmodule Game do
     # update current guess
     updated_cg = %{
       current_guess
-      | :title_found => current_guess.title_found || status == :both || status == :title,
-        :artist_found => current_guess.artist_found || status == :both || status == :artist
+      | :f2_found => current_guess.f2_found || status == :both || status == :f2,
+        :f1_found => current_guess.f1_found || status == :both || status == :f1
     }
 
     # update all data
@@ -188,8 +183,8 @@ defmodule Game do
 
     resp = {:ok, status, points}
 
-    if updated_data.current_guess.artist_found &&
-         updated_data.current_guess.title_found do
+    if updated_data.current_guess.f1_found &&
+         updated_data.current_guess.f2_found do
       {:next_state, :guess_results, updated_data, [{:reply, from, resp}]}
     else
       {:next_state, :guessing, updated_data, [{:reply, from, resp}]}
@@ -276,7 +271,8 @@ defmodule Game do
   end
 
   def handle_event(:state_timeout, :ended, :result, data) do
-    {:next_state, :guessing, data, [{:state_timeout, @guess_timeout, :not_guessed}]}
+    {:next_state, :guessing, data,
+     [{:state_timeout, data.config.guess_duration * 1000, :not_guessed}]}
   end
 
   def handle_event(:state_timeout, :guess_results_timeout, :guess_results, data) do
@@ -297,8 +293,8 @@ defmodule Game do
           :pass => MapSet.new(),
           :started_at => DateTime.utc_now(),
           :entry => current,
-          :artist_found => false,
-          :title_found => false
+          :f1_found => false,
+          :f2_found => false
         }
     }
 
@@ -306,7 +302,7 @@ defmodule Game do
       {:ok, p} ->
         Nostrum.Api.create_message(data.channel_id,
           embed: %Nostrum.Struct.Embed{
-            :title => "▶️ Playing song (#{@guess_timeout / 1000}s)",
+            :title => "▶️ Playing song (#{data.config.guess_duration}s)",
             :description => "Guess #{length(data.guessed) + 1} of #{data.total}",
             :color => Colors.get_color(:warning)
           }
@@ -314,7 +310,8 @@ defmodule Game do
 
         Nostrum.Voice.play(O2M.Application.from_env_to_int(:o2m, :guild), p, :url)
 
-        {:keep_state, updated_data, [{:state_timeout, @guess_timeout, :not_guessed}]}
+        {:keep_state, updated_data,
+         [{:state_timeout, data.config.guess_duration * 1000, :not_guessed}]}
 
       {:error, reason} ->
         Nostrum.Api.create_message(data.channel_id, reason)
@@ -344,6 +341,13 @@ defmodule Game do
           %Nostrum.Struct.Embed.Field{
             name: "Join command",
             value: "`#{Application.fetch_env!(:o2m, :prefix)}bt join`"
+          },
+          %Nostrum.Struct.Embed.Field{
+            name: "Rules",
+            value:
+              "**First field** : #{data.config.f1}, **second field** : #{data.config.f2}, **durations** : ▶️ #{
+                data.config.guess_duration
+              }s | ⏸️ #{data.config.transition_duration}s"
           }
         ],
         :color => Colors.get_color(:success)
@@ -363,25 +367,25 @@ defmodule Game do
 
     default_fields = [
       %Nostrum.Struct.Embed.Field{
-        name: "Accepted Artists",
+        name: "Accepted answers for _#{data.config.f1}_",
         value:
-          Enum.map(current_guess.entry.artists, &BlindTest.titleize/1)
+          Enum.map(current_guess.entry.f1s, &BlindTest.titleize/1)
           |> Enum.join(", ")
       },
       %Nostrum.Struct.Embed.Field{
-        name: "Accepted Titles",
+        name: "Accepted answers for _#{data.config.f2}_",
         value:
-          Enum.map(current_guess.entry.titles, &BlindTest.titleize/1)
+          Enum.map(current_guess.entry.f2s, &BlindTest.titleize/1)
           |> Enum.join(", ")
       }
     ]
 
     {message, color, fields} =
       cond do
-        current_guess.artist_found && current_guess.title_found ->
+        current_guess.f1_found && current_guess.f2_found ->
           dur = Timex.diff(DateTime.utc_now(), current_guess.started_at, :seconds)
 
-          {"Bravo ! You found both the song title and the artist name",
+          {"Bravo ! You found both #{data.config.f1} and #{data.config.f2} fields",
            Colors.get_color(:success),
            [
              %Nostrum.Struct.Embed.Field{
@@ -390,26 +394,27 @@ defmodule Game do
              }
            ] ++ default_fields}
 
-        current_guess.artist_found ->
-          {"Just found the artist...", Colors.get_color(:info), default_fields}
+        current_guess.f1_found ->
+          {"Just found #{data.config.f1} field...", Colors.get_color(:info), default_fields}
 
-        current_guess.title_found ->
-          {"Nice but the artist name is missing...", Colors.get_color(:info), default_fields}
+        current_guess.f2_found ->
+          {"Nice but #{data.config.f1} is missing...", Colors.get_color(:info), default_fields}
 
         current_guess.failed ->
           {"Oops, sorry, there was an error with this one", Colors.get_color(:danger),
            default_fields}
 
         true ->
-          {"No artist, no title, duh !", Colors.get_color(:danger), default_fields}
+          {"No #{data.config.f1}, no #{data.config.f2}, duh !", Colors.get_color(:danger),
+           default_fields}
       end
 
     Nostrum.Api.create_message(
       data.channel_id,
       embed: %Nostrum.Struct.Embed{
         title:
-          "🎼 It was #{BlindTest.titleize(Enum.max(current_guess.entry.titles))} by #{
-            BlindTest.titleize(Enum.max(current_guess.entry.artists))
+          "🎼 It was #{BlindTest.titleize(Enum.max(current_guess.entry.f1s))} - #{
+            BlindTest.titleize(Enum.max(current_guess.entry.f2s))
           }",
         description: message,
         color: color,
@@ -427,7 +432,7 @@ defmodule Game do
 
     Nostrum.Api.create_message(data.channel_id,
       embed: %Nostrum.Struct.Embed{
-        :title => "🎶 Transition ! (#{@transition_timeout / 1000}s)",
+        :title => "🎶 Transition ! (#{data.config.transition_duration}s)",
         :description => "🤬 It's taunt time ! ✨",
         :color => Colors.get_color(:warning)
       }
@@ -435,8 +440,8 @@ defmodule Game do
 
     {:keep_state_and_data,
      [
-       {:state_timeout, @transition_timeout, :transition_end},
-       {:timeout, @transition_notification_timeout, :transition_notification}
+       {:state_timeout, data.config.transition_duration * 1000, :transition_end},
+       {:timeout, div(data.config.transition_duration, 2) * 1000, :transition_notification}
      ]}
   end
 
@@ -561,10 +566,6 @@ defmodule Game do
 
   def validate(content, author_id) do
     GenStateMachine.call(Game, {:validate, content, author_id})
-  end
-
-  def max_play_time() do
-    @max_play_time
   end
 end
 

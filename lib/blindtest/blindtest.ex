@@ -4,15 +4,31 @@ defmodule BlindTest do
   # playlist max size, makes HolyRilettes happy
   @playlist_size_limit 42
 
+  # max len of custom fields
+  @max_field_len 100
+
+  # min duration for both song and transition
+  @min_duration 2
+
   defmodule GuessEntry do
     @moduledoc """
     Struct representing a blind test guess entry
     """
     defstruct [
       :url,
-      artists: [],
-      titles: []
+      f1s: [],
+      f2s: []
     ]
+  end
+
+  defmodule Config do
+    @moduledoc """
+    Struct for a blind test config
+    """
+    defstruct f1: "artist",
+              f2: "title",
+              guess_duration: 45,
+              transition_duration: 15
   end
 
   def check([], _, _), do: "Error no attachements found in this message"
@@ -36,7 +52,7 @@ defmodule BlindTest do
 
     with {:ok, file} <- find_songs_attachement(attachements),
          {:ok, resp} <- Tesla.get(file.url),
-         {:ok, guess_entries} <- parse_csv(resp.body),
+         {:ok, {config, guess_entries}} <- parse_csv(resp.body),
          {:ok, _} <-
            Nostrum.Api.create_message(
              from_channel,
@@ -49,8 +65,8 @@ defmodule BlindTest do
 
       {:ok, _} =
         Game.start(
-          {author.id, guild, channel_id, file.url, playlist_name},
-          {guess_entries, cache, channel_id, from_channel}
+          {author.id, guild, channel_id, file.url, playlist_name, config},
+          {guess_entries, cache, channel_id, from_channel, config.guess_duration}
         )
 
       "__Download worker started__ : #{length(guess_entries)} song(s) to download"
@@ -71,6 +87,42 @@ defmodule BlindTest do
     end
   end
 
+  def parse_custom_kv(kv) do
+    case String.split(kv, ":=") do
+      [k, v] ->
+        atom = String.to_atom(k)
+
+        if Map.has_key?(%Config{}, atom) do
+          cond do
+            atom in [:f1, :f2] ->
+              if String.valid?(v) && String.length(v) <= @max_field_len do
+                {:ok, {atom, v}}
+              else
+                {:error,
+                 "value #{v} for key #{k} is invalid (not a valid string or max length reach)"}
+              end
+
+            atom in [:guess_duration, :transition_duration] ->
+              case Integer.parse(v, 10) do
+                :error ->
+                  {:error, "value #{v} for key #{k} is invalid (not a an integer)"}
+
+                {parsed, _} ->
+                  if parsed >= @min_duration,
+                    do: {:ok, {atom, parsed}},
+                    else:
+                      {:error, {"value #{v} is not a positive integer value > #{@min_duration}"}}
+              end
+          end
+        else
+          {:error, "#{atom} is not a valid config key in customize directive"}
+        end
+
+      _ ->
+        {:error, "invalid key value pair #{kv} in customize directive"}
+    end
+  end
+
   @doc """
   Parse the csv file to create guess entries
 
@@ -83,11 +135,28 @@ defmodule BlindTest do
     |> String.replace(";", ",")
     |> String.split("\n")
     |> Enum.with_index()
-    |> Enum.reduce_while({:ok, []}, fn {l, i}, {:ok, acc} ->
+    |> Enum.reduce_while({:ok, {%Config{}, []}}, fn {l, i}, {:ok, {conf, acc}} ->
       # skips comments and emtpy lines
       if !String.starts_with?(l, "#") and l != "" do
         case String.replace(l, "\"", "") |> String.split(",") do
-          [url, artists, titles] ->
+          ["!customize" | args] ->
+            case Enum.reduce_while(args, {:ok, %Config{}}, fn kv, {:ok, config} ->
+                   case parse_custom_kv(kv) do
+                     {:ok, {k, v}} ->
+                       {:cont, {:ok, Map.put(config, k, v)}}
+
+                     err ->
+                       {:halt, err}
+                   end
+                 end) do
+              {:ok, config} ->
+                {:cont, {:ok, {config, acc}}}
+
+              err ->
+                {:halt, err}
+            end
+
+          [url, f1s, f2s] ->
             uri = URI.parse(url)
 
             cond do
@@ -102,14 +171,15 @@ defmodule BlindTest do
               String.contains?(uri.host, "youtu.be") || String.contains?(uri.host, "youtube") ->
                 {:cont,
                  {:ok,
-                  acc ++
-                    [
-                      %GuessEntry{
-                        url: url,
-                        artists: Enum.map(String.split(artists, "|"), &String.trim(&1)),
-                        titles: Enum.map(String.split(titles, "|"), &String.trim(&1))
-                      }
-                    ]}}
+                  {conf,
+                   acc ++
+                     [
+                       %GuessEntry{
+                         url: url,
+                         f1s: Enum.map(String.split(f1s, "|"), &String.trim(&1)),
+                         f2s: Enum.map(String.split(f2s, "|"), &String.trim(&1))
+                       }
+                     ]}}}
 
               true ->
                 {:halt, {:error, "URL #{url} is not a valid youtube url (line #{i + 1}: `#{l}`)"}}
@@ -119,7 +189,7 @@ defmodule BlindTest do
             {:halt, {:error, "Can't parse line #{i + 1}: `#{l}`"}}
         end
       else
-        {:cont, {:ok, acc}}
+        {:cont, {:ok, {conf, acc}}}
       end
     end)
   end
@@ -154,12 +224,12 @@ defmodule BlindTest do
   end
 
   @doc """
-  Verify if current answer is the artist, the song title or both
+  Verify if current answer is the first field, the second field or both
 
   Returns an atom describing the answer status
 
   ## Examples
-      iex> BlindTest.verify_answer(%BlindTest.GuessEntry{artists: ["Spiritbox"], titles: ["Holly Roller"]}, "spiritbox holl roller")
+      iex> BlindTest.verify_answer(%BlindTest.GuessEntry{f1s: ["Spiritbox"], f2s: ["Holly Roller"]}, "spiritbox holl roller")
       :both
   """
   def verify_answer(expected, proposal) do
@@ -170,19 +240,19 @@ defmodule BlindTest do
           String.length(Enum.max([expected, proposal])) < threshold)
 
     both_combinations =
-      for artist <- expected.artists, title <- expected.titles do
-        ["#{artist} #{title}", "#{title} #{artist}"]
+      for f1 <- expected.f1s, f2 <- expected.f2s do
+        ["#{f1} #{f2}", "#{f2} #{f1}"]
       end
 
     cond do
       Enum.find_value(List.flatten(both_combinations), false, &valid?.(&1)) ->
         :both
 
-      Enum.find_value(expected.artists, false, &valid?.(&1)) ->
-        :artist
+      Enum.find_value(expected.f1s, false, &valid?.(&1)) ->
+        :f1
 
-      Enum.find_value(expected.titles, false, &valid?.(&1)) ->
-        :title
+      Enum.find_value(expected.f2s, false, &valid?.(&1)) ->
+        :f2
 
       true ->
         :wrong
@@ -205,26 +275,26 @@ defmodule BlindTest do
           name: Emojos.get(:already)
         })
 
-      :artist ->
+      :f1 ->
         # 🎤
         Nostrum.Api.create_reaction(bt_channel_id, msg.id, %Nostrum.Struct.Emoji{
-          name: Emojos.get(:artist)
+          name: Emojos.get(:f1)
         })
 
         Nostrum.Api.create_message(
           bt_channel_id,
-          "#{Discord.mention(msg.author.id)} just found the artist name and earned #{points} points !"
+          "#{Discord.mention(msg.author.id)} just found the first field and earned #{points} points !"
         )
 
-      :title ->
+      :f2 ->
         # 💿
         Nostrum.Api.create_reaction(bt_channel_id, msg.id, %Nostrum.Struct.Emoji{
-          name: Emojos.get(:title)
+          name: Emojos.get(:f2)
         })
 
         Nostrum.Api.create_message(
           bt_channel_id,
-          "#{Discord.mention(msg.author.id)} just found the song title and earned #{points} points !"
+          "#{Discord.mention(msg.author.id)} just found the second field and earned #{points} points !"
         )
 
       :both ->
@@ -235,9 +305,7 @@ defmodule BlindTest do
 
         Nostrum.Api.create_message(
           bt_channel_id,
-          "#{Discord.mention(msg.author.id)} just found both the artist and the song title and earned #{
-            points
-          } points !"
+          "#{Discord.mention(msg.author.id)} just found both fields and earned #{points} points !"
         )
     end
   end

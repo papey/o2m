@@ -4,10 +4,10 @@ defmodule Emojos do
   """
 
   @emojos %{
-    :artist => "🎤",
+    :f1 => "1️⃣",
+    :f2 => "2️⃣",
     :no => "🚫",
     :already => "⏰",
-    :title => "💿",
     :both => "🏆",
     :passed => "⏩",
     :already_passed => "🖕",
