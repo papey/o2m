@@ -52,9 +52,10 @@ Everything will be generated inside _\_build_ dir, to start all the things
 
 Configuration is passed to o2m using environment variables
 
-The first one is mandatory in order to connect to Discord :
+The ones that are mandatory in order to connect to Discord :
 
 - DISCORD_TOKEN from Discord
+- O2M_GUILD_ID from Discord to indentify target guild
 
 #### Podcast monitoring
 
