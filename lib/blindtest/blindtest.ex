@@ -88,7 +88,9 @@ defmodule BlindTest do
   end
 
   def parse_custom_kv(kv) do
-    case String.split(kv, ":=") do
+    case String.split(kv, ":=")
+         |> Enum.map(&String.trim/1)
+         |> Enum.map(fn e -> String.trim(e, "\"") end) do
       [k, v] ->
         atom = String.to_atom(k)
 

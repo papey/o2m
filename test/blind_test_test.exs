@@ -36,7 +36,8 @@ defmodule BlindTestTest do
   end
 
   test "parse_csv with custom directive return a config map" do
-    content = "!customize,f1:=field1,f2:=field2,guess_duration:=20,transition_duration:=2"
+    content =
+      "!customize,f1:=\"field1\",f2   :=field2,guess_duration:=   20         ,transition_duration:=2"
 
     {:ok, {conf, _parsed}} = BlindTest.parse_csv(content)
     assert conf.f1 == "field1"
