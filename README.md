@@ -2,10 +2,10 @@
 
 [![Build Status](https://drone.github.papey.fr/api/badges/papey/o2m/status.svg)](https://drone.github.papey.fr/papey/o2m)
 
-O2M is an [Elixir](https://elixir-lang.org) Discord bot capable of :
+O2M is an [Elixir](https://elixir-lang.org) Discord bot. It can :
 
 - organize and run blind tests
-- fetching data about metal bands (baked up by [Metalorgie](https://metalorgie.com))
+- fetch data about metal bands (baked up by [Metalorgie](https://metalorgie.com))
 - monitor podcasts shows publications on [Ausha](https://ausha.co) or [Anchor](https://anchor.fm).
 
 ## Getting Started
