@@ -26,7 +26,7 @@ config :o2m,
   # RSS podcast feed urls
   feed_urls: System.get_env("O2M_FEED_URLS"),
   # DETS template file
-  tmpl_dets: System.get_env("O2M_TMPL_DETS", "/opt/o2m/dets/templates.dets"),
+  tmpl_dets: System.get_env("O2M_TMPL_DETS", "/srv/o2m/dets/templates.dets"),
   # Blind tests
   # admin role for blind-test
   bt_admin: System.get_env("O2M_BT_ADMIN"),
@@ -35,7 +35,9 @@ config :o2m,
   # text channel for blind-tests
   bt_vocal: System.get_env("O2M_BT_VOCAL_ID"),
   # cache diredctory for songs
-  bt_cache: System.get_env("O2M_BT_CACHE", "/tmp/o2m/cache")
+  bt_cache: System.get_env("O2M_BT_CACHE", "/tmp/o2m/cache"),
+  # blind test leaderbord dets
+  bt_lboard_dets: System.get_env("O2M_BT_LBOARD_DETS", "/srv/o2m/dets/leaderboard.dets")
 
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
