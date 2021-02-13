@@ -7,7 +7,7 @@ config :nostrum,
   token: System.get_env("DISCORD_TOKEN"),
   num_shards: :auto,
   gateway_intents:
-    if(System.get_env("DISCORD_GW_INTENTS") == "yes", do: :all, else: :nonprivileged)
+    if(System.get_env("DISCORD_GW_INTENTSjjj") == "yes", do: :all, else: :nonprivileged)
 
 # o2m configuration
 config :o2m,
@@ -26,7 +26,7 @@ config :o2m,
   # RSS podcast feed urls
   feed_urls: System.get_env("O2M_FEED_URLS"),
   # DETS template file
-  tmpl_dets: System.get_env("O2M_TMPL_DETS", "/opt/o2m/dets/templates.dets"),
+  tmpl_dets: System.get_env("O2M_TMPL_DETS", "/srv/o2m/dets/templates.dets"),
   # Blind tests
   # admin role for blind-test
   bt_admin: System.get_env("O2M_BT_ADMIN"),
@@ -37,7 +37,7 @@ config :o2m,
   # cache diredctory for songs
   bt_cache: System.get_env("O2M_BT_CACHE", "/tmp/o2m/cache"),
   # blind test leaderbord dets
-  bt_lboard_dets: System.get_env("O2M_BT_LBOARD_DETS", "/opt/o2m/dets/leaderboard.dets")
+  bt_lboard_dets: System.get_env("O2M_BT_LBOARD_DETS", "/srv/o2m/dets/leaderboard.dets")
 
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",

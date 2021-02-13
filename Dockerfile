@@ -62,7 +62,8 @@ RUN useradd o2m
 RUN mkdir -p /home/o2m/
 RUN chown -R o2m:o2m /home/o2m/
 
-RUN mkdir -p /opt/o2m/dets
+RUN mkdir -p /srv/o2m/dets
+RUN chown -R o2m:o2m /srv/o2m/dets
 
 WORKDIR /opt/o2m
 
