@@ -83,7 +83,7 @@ In order to get specific help for a command type `#{prefix}command help`"
     """
     # if not args provided
     def add([]) do
-      "Missing template for `add` subcommand"
+      "Error, missing template for `add` subcommand"
     end
 
     # if args provided
@@ -101,23 +101,24 @@ In order to get specific help for a command type `#{prefix}command help`"
           # if ok, use template
           case Announcements.Storage.put(template) do
             true ->
-              "Template added succesfully"
+              "Template `#{template}` added succesfully"
 
             false ->
-              "Template already exists"
+              "Template `#{template}` already exists"
 
             {:warning, message} ->
               message
 
             {:error, reason} ->
               Logger.error("Error while saving template to DETS file", reason: reason)
+              reason
           end
 
         false ->
           # if not, fallback to a default one
-          "Invalid template ensure all required keys are set (__mandatory keys : #{m2s()}__) and respect length limit (**#{
-            Announcements.limit()
-          } characters)**"
+          "This template is invalid, please ensure all required keys are set (__mandatory keys : #{
+            m2s()
+          }__) and respect length limit (**#{Announcements.limit()} characters)**"
       end
     end
 
@@ -156,11 +157,12 @@ In order to get specific help for a command type `#{prefix}command help`"
 
       case Announcements.Storage.delete(hash) do
         :ok ->
-          "Template deleted"
+          "Template with ID **#{hash}** deleted"
 
         {:error, reason} ->
-          Logger.error("Error deleting template", reason: reason)
-          "Error deleting template"
+          message = "Error deleteing template #{hash}"
+          Logger.error(message, reason: reason)
+          message
       end
     end
 
@@ -185,12 +187,12 @@ In order to get specific help for a command type `#{prefix}command help`"
           }tmpl list\`\`\`"
 
         "delete" ->
-          "Here is an example of \`delete\` subcommand, using id from list subcommand : \`\`\`#{
+          "Here is an example of \`delete\` subcommand, using ID from list subcommand : \`\`\`#{
             Application.fetch_env!(:o2m, :prefix)
           }tmpl delete acfe\`\`\`"
 
         sub ->
-          "Subcommand #{sub} not available"
+          "Help for subcommand #{sub} not available"
       end
     end
   end
@@ -311,10 +313,10 @@ In order to get specific help for a command type `#{prefix}command help`"
         BlindTest.init(msg.attachments, msg.author, msg.channel_id, args)
       else
         :not_member ->
-          "User do not have permission to init a blind test"
+          "You do not have required permissions to init a new blind test"
 
         :public ->
-          "Blind test can only be init in a private channel"
+          "Blind test can only be init in a private channel (and this message comes from a public one 🤦‍♀️)"
 
         {:one, _} ->
           {:ok, channel_id} = Game.channel_id()
@@ -325,7 +327,7 @@ In order to get specific help for a command type `#{prefix}command help`"
           }**, destroy it first before creating a new one"
 
         {:error, reason} ->
-          "Error #{reason}"
+          "Error, #{reason}"
       end
     end
 
@@ -335,13 +337,13 @@ In order to get specific help for a command type `#{prefix}command help`"
     def check(msg) do
       with :private <- channel_type(msg.channel_id),
            {:ok, filename} <- BlindTest.check(msg.attachments) do
-        "✅ Playlist #{filename} checked"
+        "✅ Playlist `#{filename}` checked : 👌"
       else
         {:error, reason} ->
-          "❌ Error #{reason}"
+          "❌ there is an error in this playlist : **#{reason}**"
 
         :public ->
-          "Blind test can only be checked in a private channel"
+          "Blind test can only be checked in a private channel (and this message comes from a public one 🤦‍♀️)"
       end
     end
 
@@ -370,14 +372,14 @@ In order to get specific help for a command type `#{prefix}command help`"
               :no_message
 
             {:error, :not_transition} ->
-              "You can only join a blind test between two guesses"
+              "You can only join a blind test **between two guesses**"
           end
         else
           "Sorry but you can only interact with blind test in #{channel(channel_id)}"
         end
       else
         :none ->
-          "Can't join a blind test since there is no blind test running"
+          "Can't join a blind test since there is no blind test running 🤣"
       end
     end
 
@@ -393,17 +395,17 @@ In order to get specific help for a command type `#{prefix}command help`"
               "User #{msg.author} quit the game... BOOOOOO !"
 
             {:error, :not_transition} ->
-              "You can only leave a blind test between two guesses"
+              "You can only leave a blind test **between two guesses**"
 
             {:error, :not_playing} ->
-              "User #{msg.author} please join a blind test before leaving one"
+              "User #{msg.author} please **join a blind** test before leaving one 😛"
           end
         else
-          "Sorry but you can only interact with blind test in #{channel(channel_id)}"
+          "Sorry but you can only interact with a blind test in #{channel(channel_id)}"
         end
       else
         :none ->
-          "Can't leave a blind test since there is no blind test running"
+          "Can't leave a blind test since there is no blind test running 🙃"
       end
     end
 
@@ -479,7 +481,7 @@ In order to get specific help for a command type `#{prefix}command help`"
         end
       else
         :none ->
-          "Can't list players in a blind test since there is no a blind test running"
+          "Can't list players in a blind test since there is no a blind test running 🙃"
       end
     end
 
@@ -510,13 +512,13 @@ In order to get specific help for a command type `#{prefix}command help`"
               "Sorry but vocal channel is not ready"
 
             {:error, :no_players} ->
-              "Sorry but I can't start a blind test without players..."
+              "Sorry but I can't start a blind test without players... 🙃"
 
             {:error, :not_ready} ->
-              "Sorry but blind test is not ready yet"
+              "Sorry but blind test is not ready yet ⏳"
 
             {:error, :running} ->
-              "Sorry but a blind test is already running"
+              "Sorry but a blind test is already running 🎮"
 
             {:error, reason} ->
               reason
@@ -524,10 +526,10 @@ In order to get specific help for a command type `#{prefix}command help`"
         end
       else
         :none ->
-          "Can't list players in a blind test since there is no blind test running"
+          "Can't list players in a blind test since there is no blind test running 🙃"
 
         :not_member ->
-          "User do not have permission to start a blind test"
+          "#{mention(msg.author.id)} do not have permission to start a blind test"
       end
     end
 
@@ -551,7 +553,7 @@ In order to get specific help for a command type `#{prefix}command help`"
         end
       else
         :none ->
-          "Can't get scores for a blind test since there is no blind test running"
+          "Can't get scores for a blind test since there is no blind test running 🙃"
       end
     end
 
@@ -592,7 +594,7 @@ In order to get specific help for a command type `#{prefix}command help`"
               :no_message
 
             {:error, :not_guessing} ->
-              "You can only pass a track when guessing one"
+              "You can only pass a track when **guessing one**"
           end
         else
           "Sorry but you can only interact with blind test in #{channel(channel_id)}"
@@ -602,7 +604,7 @@ In order to get specific help for a command type `#{prefix}command help`"
           "#{mention(msg.author.id)} join a game if you want to use this command..."
 
         :none ->
-          "Can't pass a track in a blind test since there is no a blind test running"
+          "Can't pass a track in a blind test since there is no a blind test running  🙃"
       end
     end
 
@@ -661,10 +663,10 @@ In order to get specific help for a command type `#{prefix}command help`"
         end
       else
         :none ->
-          "Can't destroy a blind test since there is no blind test running"
+          "Can't destroy a blind test since there is no blind test running 🙃"
 
         :not_member ->
-          "User do not have permission to destroy a blind test"
+          "#{mention(msg.author.id)} do not have permission to destroy a blind test"
       end
     end
 
@@ -676,7 +678,7 @@ In order to get specific help for a command type `#{prefix}command help`"
 
     __Administration commands__ (requires privileges)
 
-    - **init**: inits a new blind test, this message should be a private message to the bot with a `.csv` attached to it (`csv format: youtube.com/link,artist,title`)
+    - **init**: init a new blind test, message should be a private message to the bot with a `.csv` file attached to it (`csv format: youtube.com/link,artist,title`)
     - **start**: starts the blind test if ready, this message should be send in the dedicated blind test text channel
     - **destroy**: destroy the running blind test, this message should be send in the dedicated blind test text channel
 
@@ -757,7 +759,7 @@ In order to get specific help for a command type `#{prefix}command help`"
           |> Enum.reduce(
             "**Leaderboard (top 15)**",
             fn {{user, score}, index}, acc ->
-              "#{acc}\n#{index + 1} | #{Discord.mention(user)} - **#{score}** point(s)#{
+              "#{acc}\n#{index + 1} | #{mention(user)} - **#{score}** point(s)#{
                 if index + 1 <= 3,
                   do: " - #{Map.get(Game.get_medals(), index + 1)}"
               }"
@@ -765,7 +767,7 @@ In order to get specific help for a command type `#{prefix}command help`"
           )
 
         :not_member ->
-          "User do not have permission to get leaderboard top"
+          "#{mention(msg.author.id)} do not have permission to get leaderboard top"
       end
     end
 
@@ -801,7 +803,7 @@ In order to get specific help for a command type `#{prefix}command help`"
           end
 
         :not_member ->
-          "User do not have permission to set leaderboard score"
+          "#{mention(msg.author.id)} do not have permission to set leaderboard score"
       end
     end
 
@@ -811,7 +813,7 @@ In order to get specific help for a command type `#{prefix}command help`"
 
     def lboard(msg, ["get" | _]) do
       total = Leaderboard.get(msg.author.id)
-      "Total for user #{Discord.mention(msg.author.id)} : #{if total == 0, do: "👌", else: total}"
+      "Total for user #{mention(msg.author.id)} : #{if total == 0, do: "👌", else: total}"
     end
 
     def lboard(_msg, [_]) do
@@ -825,10 +827,10 @@ In order to get specific help for a command type `#{prefix}command help`"
       case Discord.is_member(msg.author, adm, guild_id) do
         :member ->
           Party.reset()
-          "Party data cleared !"
+          "Party data cleared sucessfully 🙌"
 
         :not_member ->
-          "User do not have permission to reset party data"
+          "#{mention(msg.author.id)} do not have permission to reset party data"
       end
     end
 
@@ -882,14 +884,14 @@ In order to get specific help for a command type `#{prefix}command help`"
         {val, _} ->
           case Party.get(val) do
             [] ->
-              "No found for this game ID"
+              "No game found for game ID #{id}"
 
             [{_id, game} | _] ->
               "Ranking for game **#{game.name}** :\n#{Game.generate_ranking(game.scores)}"
           end
 
         _ ->
-          "Result ID must be a valid integer value"
+          "Result ID must be a valid integer value (received #{id})"
       end
     end
 

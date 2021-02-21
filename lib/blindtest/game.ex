@@ -385,7 +385,7 @@ defmodule Game do
         current_guess.f1_found && current_guess.f2_found ->
           dur = Timex.diff(DateTime.utc_now(), current_guess.started_at, :seconds)
 
-          {"Bravo ! You found both #{data.config.f1} and #{data.config.f2} fields",
+          {"Bravo ! You found both **#{data.config.f1}** and **#{data.config.f2}** fields",
            Colors.get_color(:success),
            [
              %Nostrum.Struct.Embed.Field{

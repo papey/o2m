@@ -59,7 +59,7 @@ defmodule O2M do
             false ->
               Api.create_message(
                 msg.channel_id,
-                "Sorry but blind test is not configured on this Discord Guild 😢"
+                "Sorry but blind test is **not configured** on this Discord Guild 😢"
               )
           end
 
@@ -69,11 +69,11 @@ defmodule O2M do
             "" ->
               Api.create_message(
                 msg.channel_id,
-                "Sorry but I need at least a command to do something"
+                "Sorry but I need at least **a command** to do something"
               )
 
             _ ->
-              Api.create_message(msg.channel_id, "Sorry but **#{cmd}** command is not available")
+              Api.create_message(msg.channel_id, "Sorry but **#{cmd}** ? 🤷")
           end
 
         # if no command, check if it's from a blind-test channel and if channel is in guessing mode

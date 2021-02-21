@@ -101,19 +101,18 @@ defmodule BlindTest do
                 {:ok, {atom, v}}
               else
                 {:error,
-                 "value #{v} for key #{k} is invalid (not a valid string or max length reach)"}
+                 "value #{v} for key #{k} is invalid (not a valid string or max length reached)"}
               end
 
             atom in [:guess_duration, :transition_duration] ->
               case Integer.parse(v, 10) do
                 :error ->
-                  {:error, "value #{v} for key #{k} is invalid (not a an integer)"}
+                  {:error, "value #{v} for key #{k} is invalid (not an integer)"}
 
                 {parsed, _} ->
                   if parsed >= @min_duration,
                     do: {:ok, {atom, parsed}},
-                    else:
-                      {:error, {"value #{v} is not a positive integer value > #{@min_duration}"}}
+                    else: {:error, {"value #{v} is not an integer value >= #{@min_duration}"}}
               end
           end
         else
