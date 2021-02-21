@@ -895,6 +895,10 @@ In order to get specific help for a command type `#{prefix}command help`"
       end
     end
 
+    def party(_msg, input) do
+      "**#{Enum.join(input, " ")}** is not a party subcommand 🙅"
+    end
+
     def bam() do
       [
         "https://youtu.be/iRbnY8EK4Ew",
