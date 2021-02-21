@@ -82,10 +82,7 @@ defmodule O2M.Application do
     Logger.info("Application is starting per feed jobs")
 
     case Application.fetch_env(:o2m, :feed_urls) do
-      {:ok, nil} ->
-        {:none, "There is no feed URL configured"}
-
-      :error ->
+      n when n in [{:ok, nil}, :error] ->
         {:none, "There is no feed URL configured"}
 
       {:ok, conf} ->
