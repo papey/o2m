@@ -7,7 +7,7 @@ config :nostrum,
   token: System.get_env("DISCORD_TOKEN"),
   num_shards: :auto,
   gateway_intents:
-    if(System.get_env("DISCORD_GW_INTENTSjjj") == "yes", do: :all, else: :nonprivileged)
+    if(System.get_env("DISCORD_GW_INTENTS") == "yes", do: :all, else: :nonprivileged)
 
 # o2m configuration
 config :o2m,
