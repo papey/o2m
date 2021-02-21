@@ -249,7 +249,7 @@ defmodule Game do
 
   # Handlers when timeouts triggers
   def handle_event(:timeout, :transition_notification, :transition, data) do
-    Nostrum.Api.create_message(data.channel_id, "Listen ! Next song is comming !")
+    Nostrum.Api.create_message(data.channel_id, "Listen ! Next song is coming !")
     :keep_state_and_data
   end
 
