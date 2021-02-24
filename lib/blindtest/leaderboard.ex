@@ -24,7 +24,7 @@ defmodule Leaderboard do
     ret =
       case fun.(old, points) do
         x when x > 0 ->
-          {:dets.insert(table, {id, old + points}), x}
+          {:dets.insert(table, {id, fun.(old, points)}), x}
 
         _ ->
           {:dets.insert(table, {id, 0}), 0}

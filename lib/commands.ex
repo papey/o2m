@@ -816,7 +816,7 @@ In order to get specific help for a command type `#{prefix}command help`"
       "Total for user #{mention(msg.author.id)} : #{if total == 0, do: "👌", else: total}"
     end
 
-    def lboard(_msg, [_]) do
+    def lboard(_msg, _) do
       "Unsupported `lboard` instruction"
     end
 
