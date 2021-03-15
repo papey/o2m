@@ -28,7 +28,8 @@ defmodule BlindTest do
     defstruct f1: "artist",
               f2: "title",
               guess_duration: 45,
-              transition_duration: 15
+              transition_duration: 15,
+              error_treshold: 0.2
   end
 
   def check([], _, _), do: "Error no attachements found in this message"
@@ -113,6 +114,17 @@ defmodule BlindTest do
                   if parsed >= @min_duration,
                     do: {:ok, {atom, parsed}},
                     else: {:error, {"value #{v} is not an integer value >= #{@min_duration}"}}
+              end
+
+            atom in [:error_treshold] ->
+              case Integer.parse(v, 10) do
+                :error ->
+                  {:error, "value #{v} for key #{k} is invalid (not an integer)"}
+
+                {parsed, _} ->
+                  if parsed >= 0 && parsed <= 100,
+                    do: {:ok, {atom, parsed / 100}},
+                    else: {:error, {"value #{v} is not between 0 and 100"}}
               end
           end
         else
@@ -233,9 +245,7 @@ defmodule BlindTest do
       iex> BlindTest.verify_answer(%BlindTest.GuessEntry{f1s: ["Spiritbox"], f2s: ["Holly Roller"]}, "spiritbox holl roller")
       :both
   """
-  def verify_answer(expected, proposal) do
-    threshold = 0.2
-
+  def verify_answer(expected, proposal, threshold \\ 0.2) do
     valid? =
       &(Levenshtein.distance(sanitize_input(&1), sanitize_input(proposal)) /
           String.length(Enum.max([expected, proposal])) < threshold)

@@ -50,7 +50,8 @@ defmodule Game do
       name: "",
       ready: false,
       # config
-      config: %BlindTest.Config{}
+      config: %BlindTest.Config{},
+      error_threshold: 0.2
     ]
   end
 
@@ -143,7 +144,7 @@ defmodule Game do
     current_guess = data.current_guess
 
     status =
-      case BlindTest.verify_answer(current_guess.entry, answer) do
+      case BlindTest.verify_answer(current_guess.entry, answer, data.config.error_treshold) do
         :f2 ->
           (!current_guess.f2_found && :f2) || :already
 
