@@ -189,8 +189,8 @@ defmodule BlindTest do
                      [
                        %GuessEntry{
                          url: url,
-                         f1s: Enum.map(String.split(f1s, "|"), &String.trim(&1)),
-                         f2s: Enum.map(String.split(f2s, "|"), &String.trim(&1))
+                         f1s: Enum.map(String.split(f1s, "|"), &BlindTest.sanitize_input/1),
+                         f2s: Enum.map(String.split(f2s, "|"), &BlindTest.sanitize_input/1)
                        }
                      ]}}}
 
@@ -230,7 +230,7 @@ defmodule BlindTest do
       "abc"
   """
   def sanitize_input(input) do
-    String.trim(input)
+    String.normalize(input, :nfd)
     |> String.replace(~r/[^a-zA-Z0-9 -]/, "")
     |> String.replace(~r/\s+/, " ")
     |> String.downcase()
@@ -247,7 +247,7 @@ defmodule BlindTest do
   """
   def verify_answer(expected, proposal, threshold \\ 0.2) do
     valid? =
-      &(Levenshtein.distance(sanitize_input(&1), sanitize_input(proposal)) /
+      &(Levenshtein.distance(&1, sanitize_input(proposal)) /
           String.length(Enum.max([expected, proposal])) < threshold)
 
     both_combinations =
