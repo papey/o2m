@@ -349,66 +349,71 @@ In order to get specific help for a command type `#{prefix}command help`"
 
         errors =
           Enum.reduce(guess_entries, 0, fn guess, acc ->
-            {:ok, ts} = Youtube.get_timestamp(guess.url)
-            {:ok, stdout} = Downloader.Yydl.get(guess.url)
+            with {:ok, stdout} <- Downloader.Yydl.get(guess.url),
+                 [data_url | _] <- String.split(stdout, "\n") do
+              start =
+                Timex.Duration.to_time!(%Timex.Duration{
+                  microseconds: 0,
+                  megaseconds: 0,
+                  seconds: 0
+                })
 
-            case String.split(stdout, "\n") do
+              to =
+                Timex.Duration.to_time!(%Timex.Duration{
+                  microseconds: 0,
+                  megaseconds: 0,
+                  seconds: 1
+                })
+
+              case System.cmd("ffmpeg", [
+                     "-y",
+                     "-ss",
+                     Time.to_string(start),
+                     "-to",
+                     Time.to_string(to),
+                     "-i",
+                     data_url,
+                     "-c:a",
+                     "libopus",
+                     "-ac",
+                     "1",
+                     "-b:a",
+                     "96K",
+                     "-vbr",
+                     "on",
+                     "-frame_duration",
+                     "20",
+                     "-f",
+                     "null",
+                     "/dev/null"
+                   ]) do
+                {_stdout, 0} ->
+                  acc
+
+                {_stderr, _} ->
+                  Nostrum.Api.create_message(
+                    msg.channel_id,
+                    "__Downloader checker update__: error getting raw data for url #{guess.url}"
+                  )
+
+                  acc + 1
+              end
+            else
               [] ->
                 Nostrum.Api.create_message(
                   msg.channel_id,
                   "__Downloader checker update__: no data found for url #{guess.url}"
                 )
 
-                acc
+                acc + 1
 
-              [data_url | _] ->
-                start =
-                  Timex.Duration.to_time!(%Timex.Duration{
-                    microseconds: 0,
-                    megaseconds: 0,
-                    seconds: ts
-                  })
+              {:error, _} ->
+                Nostrum.Api.create_message(
+                  msg.channel_id,
+                  "__Downloader checker update__: error getting #{guess.url}"
+                )
 
-                to =
-                  Timex.Duration.to_time!(%Timex.Duration{
-                    microseconds: 0,
-                    megaseconds: 0,
-                    seconds: ts + 1
-                  })
-
-                case System.cmd("ffmpeg", [
-                       "-y",
-                       "-ss",
-                       Time.to_string(start),
-                       "-to",
-                       Time.to_string(to),
-                       "-i",
-                       data_url,
-                       "-c:a",
-                       "libopus",
-                       "-ac",
-                       "1",
-                       "-b:a",
-                       "96K",
-                       "-vbr",
-                       "on",
-                       "-frame_duration",
-                       "20",
-                       "-f",
-                       "null",
-                       "/dev/null"
-                     ]) do
-                  {_stdout, 0} ->
-                    acc
-
-                  {_stderr, _} ->
-                    Nostrum.Api.create_message(
-                      msg.channel_id,
-                      "__Downloader checker update__: error getting raw data for url #{guess.url}"
-                    )
-
-                    acc + 1
-                end
+                acc + 1
             end
           end)
 
