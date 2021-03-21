@@ -336,8 +336,88 @@ In order to get specific help for a command type `#{prefix}command help`"
     """
     def check(msg) do
       with :private <- channel_type(msg.channel_id),
-           {:ok, filename} <- BlindTest.check(msg.attachments) do
-        "✅ Playlist `#{filename}` checked : 👌"
+           {:ok, {filename, guess_entries}} <- BlindTest.check(msg.attachments) do
+        Nostrum.Api.create_message!(
+          msg.channel_id,
+          "✅ Syntax for playlist `#{filename}` checked : 👌"
+        )
+
+        Nostrum.Api.create_message!(
+          msg.channel_id,
+          "__Moving on to download checks__"
+        )
+
+        errors =
+          Enum.reduce(guess_entries, 0, fn guess, acc ->
+            {:ok, ts} = Youtube.get_timestamp(guess.url)
+            {:ok, stdout} = Downloader.Yydl.get(guess.url)
+
+            case String.split(stdout, "\n") do
+              [] ->
+                Nostrum.Api.create_message(
+                  msg.channel_id,
+                  "__Downloader checker update__: no data found for url #{guess.url}"
+                )
+
+                acc
+
+              [data_url | _] ->
+                start =
+                  Timex.Duration.to_time!(%Timex.Duration{
+                    microseconds: 0,
+                    megaseconds: 0,
+                    seconds: ts
+                  })
+
+                to =
+                  Timex.Duration.to_time!(%Timex.Duration{
+                    microseconds: 0,
+                    megaseconds: 0,
+                    seconds: ts + 1
+                  })
+
+                case System.cmd("ffmpeg", [
+                       "-y",
+                       "-ss",
+                       Time.to_string(start),
+                       "-to",
+                       Time.to_string(to),
+                       "-i",
+                       data_url,
+                       "-c:a",
+                       "libopus",
+                       "-ac",
+                       "1",
+                       "-b:a",
+                       "96K",
+                       "-vbr",
+                       "on",
+                       "-frame_duration",
+                       "20",
+                       "-f",
+                       "null",
+                       "/dev/null"
+                     ]) do
+                  {_stdout, 0} ->
+                    acc
+
+                  {_stderr, _} ->
+                    Nostrum.Api.create_message(
+                      msg.channel_id,
+                      "__Downloader checker update__: error getting raw data for url #{guess.url}"
+                    )
+
+                    acc + 1
+                end
+            end
+          end)
+
+        if errors != 0,
+          do:
+            "❌ **#{errors} download error(s)** for #{length(guess_entries)} entries in playlist `#{
+              filename
+            }`",
+          else: "✅ No download errors in playlist `#{filename}` 👌"
       else
         {:error, reason} ->
           "❌ there is an error in this playlist : **#{reason}**"

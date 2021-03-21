@@ -37,8 +37,8 @@ defmodule BlindTest do
   def check(attachements) do
     with {:ok, file} <- find_songs_attachement(attachements),
          {:ok, resp} <- Tesla.get(file.url),
-         {:ok, _guess_entries} <- parse_csv(resp.body) do
-      {:ok, file.filename}
+         {:ok, {_, guess_entries}} <- parse_csv(resp.body) do
+      {:ok, {file.filename, guess_entries}}
     else
       error -> error
     end
