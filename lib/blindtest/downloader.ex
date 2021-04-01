@@ -31,6 +31,8 @@ defmodule Downloader do
       end
 
       case System.cmd("youtube-dl", [
+             "--add-header",
+             "Cookie:",
              "--user-agent",
              @user_agent,
              "-g",
