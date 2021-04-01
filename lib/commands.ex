@@ -49,7 +49,7 @@ Using prefix `#{prefix}` :
 
 **Emojis**
 - 📌 : add this emoji as a reaction to pin a public message in order to get a private reminder about the pinned message
-- 👀️️ : in your private channel with the bot add this emoji as a reaction to delete a message send by the bot"
+- 👀️️ : in your private channel with the bot add this emoji as a reaction to delete a bot message"
     end
   end
 
