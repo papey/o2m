@@ -47,8 +47,9 @@ Using prefix `#{prefix}` :
 - bt : to interact with blind tests (configured: **#{BlindTest.configured?()}**)
 - help : to get this help message
 
-**Emojos**
-- 📌 : add this emoji as a reaction to pin a public message in order to get a private reminder about the pinned message"
+**Emojis**
+- 📌 : add this emoji as a reaction to pin a public message in order to get a private reminder about the pinned message
+- 👀️️ : in your private channel with the bot add this emoji as a reaction to delete a message send by the bot"
     end
   end
 

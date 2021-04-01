@@ -19,8 +19,28 @@ defmodule O2M do
   Handle events from Discord
   """
   def handle_event({:MESSAGE_REACTION_ADD, reaction, _ws_state}) do
-    if reaction.emoji.name == "📌" do
-      Reminder.remind(reaction)
+    case reaction.emoji.name do
+      "📌" ->
+        Reminder.remind(reaction)
+
+      "👀" ->
+        me = Nostrum.Cache.Me.get()
+
+        with {:ok, origin} <-
+               Nostrum.Api.get_channel_message(reaction.channel_id, reaction.message_id),
+             :private <- Discord.channel_type(origin.channel_id),
+             true <- me != nil && origin.author.id == me.id,
+             {:ok} <- Nostrum.Api.delete_message(reaction.channel_id, reaction.message_id) do
+        else
+          {:error, reason} ->
+            Nostrum.Api.create_message(reaction.channel_id, "Error, #{reason}")
+
+          _ ->
+            nil
+        end
+
+      _ ->
+        nil
     end
   end
 
