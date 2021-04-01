@@ -77,6 +77,13 @@ For running blind tests in details, see the wiki.
 You can also configure O2M using `config.esx`, see this file inside
 the `config` directory for real life examples.
 
+##### Emojis reactions
+
+Using a set of emojis, adding a reaction to messages trigger bot commands.
+
+- 📌 to add a pointer and reminder to a message send on a public channel
+- 👀️ to delete a bot private message (only available in bot private channel)
+
 #### Notes on Discord permissions
 
 If you run this bot in blind test mode you need to activate all Discord [gateway intents](https://discord.com/developers/docs/topics/gateway#gateway-intents).
