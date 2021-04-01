@@ -40,11 +40,15 @@ defmodule O2M.Commands do
     """
 
     def handle(prefix) do
-      "Using prefix `#{prefix}` available commands are :
+      "**Commands**
+Using prefix `#{prefix}` :
 - mo : to interact with metalorgie website and database
 - tmpl : to interact with announcement templates
 - bt : to interact with blind tests (configured: **#{BlindTest.configured?()}**)
-In order to get specific help for a command type `#{prefix}command help`"
+- help : to get this help message
+
+**Emojos**
+- 📌 : add this emoji as a reaction to pin a public message in order to get a private reminder about the pinned message"
     end
   end
 

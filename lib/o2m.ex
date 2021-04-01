@@ -18,6 +18,11 @@ defmodule O2M do
   @doc """
   Handle events from Discord
   """
+  def handle_event({:MESSAGE_REACTION_ADD, reaction, _ws_state})
+      when reaction.emoji.name == "📌" do
+    Reminder.remind(reaction)
+  end
+
   def handle_event({:MESSAGE_CREATE, msg, _ws_state}) do
     # Ensure this is not the bot talking to itself
     nickname = Application.fetch_env!(:o2m, :nickname)
