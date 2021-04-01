@@ -18,9 +18,10 @@ defmodule O2M do
   @doc """
   Handle events from Discord
   """
-  def handle_event({:MESSAGE_REACTION_ADD, reaction, _ws_state})
-      when reaction.emoji.name == "📌" do
-    Reminder.remind(reaction)
+  def handle_event({:MESSAGE_REACTION_ADD, reaction, _ws_state}) do
+    if reaction.emoji.name == "📌" do
+      Reminder.remind(reaction)
+    end
   end
 
   def handle_event({:MESSAGE_CREATE, msg, _ws_state}) do
