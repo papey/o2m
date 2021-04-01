@@ -25,7 +25,7 @@ defmodule Reminder do
             },
             %Nostrum.Struct.Embed.Field{
               name: "Attachments",
-              value: "#{length(origin.attachments)} files(s)"
+              value: "#{length(origin.attachments)} file(s)"
             },
             %Nostrum.Struct.Embed.Field{
               name: "Link",
