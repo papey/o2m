@@ -24,12 +24,10 @@ defmodule O2M do
         Reminder.remind(reaction)
 
       "👀" ->
-        me = Nostrum.Cache.Me.get()
-
         with {:ok, origin} <-
                Nostrum.Api.get_channel_message(reaction.channel_id, reaction.message_id),
              :private <- Discord.channel_type(origin.channel_id),
-             true <- me != nil && origin.author.id == me.id,
+             true <- origin.author.bot,
              {:ok} <- Nostrum.Api.delete_message(reaction.channel_id, reaction.message_id) do
         else
           {:error, reason} ->
@@ -45,10 +43,7 @@ defmodule O2M do
   end
 
   def handle_event({:MESSAGE_CREATE, msg, _ws_state}) do
-    # Ensure this is not the bot talking to itself
-    nickname = Application.fetch_env!(:o2m, :nickname)
-
-    if msg.author.username != nickname do
+    unless msg.author.bot do
       # fetch prefix
       {:ok, prefix} = Application.fetch_env(:o2m, :prefix)
 
