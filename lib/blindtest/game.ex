@@ -102,6 +102,9 @@ defmodule Game do
       !Nostrum.Voice.ready?(data.guild_id) ->
         {:keep_state_and_data, [{:reply, from, {:error, :vocal_not_ready}}]}
 
+      length(data.to_guess) == 0 ->
+        {:keep_state_and_data, [{:reply, from, {:error, :no_guess}}]}
+
       true ->
         {:next_state, :guessing,
          %{

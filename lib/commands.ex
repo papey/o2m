@@ -598,6 +598,9 @@ Using prefix `#{prefix}` :
                 }
               )
 
+            {:error, :no_guess} ->
+              "Sorry but there is no guess for this game"
+
             {:error, :vocal_not_ready} ->
               "Sorry but vocal channel is not ready"
 
