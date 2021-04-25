@@ -250,7 +250,7 @@ defmodule BlindTest do
 
     valid? =
       &(Levenshtein.distance(&1, sanitized) /
-          String.length(Enum.max([expected, sanitized])) < threshold)
+          String.length(Enum.max([&1, sanitized])) < threshold)
 
     both_combinations =
       for f1 <- expected.f1s, f2 <- expected.f2s do
