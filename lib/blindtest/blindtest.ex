@@ -246,9 +246,11 @@ defmodule BlindTest do
       :both
   """
   def verify_answer(expected, proposal, threshold \\ 0.2) do
+    sanitized = sanitize_input(proposal)
+
     valid? =
-      &(Levenshtein.distance(&1, sanitize_input(proposal)) /
-          String.length(Enum.max([expected, sanitize_input(proposal)])) < threshold)
+      &(Levenshtein.distance(&1, sanitized) /
+          String.length(Enum.max([expected, sanitized])) < threshold)
 
     both_combinations =
       for f1 <- expected.f1s, f2 <- expected.f2s do
