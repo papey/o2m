@@ -136,7 +136,9 @@ defmodule BlindTest do
                   {:error, "value #{} for key #{k} is invalid (not an integer)"}
 
                 {parsed, _} ->
-                  {:ok, {atom, parsed}}
+                  if parsed > 0,
+                    do: {:ok, {atom, parsed}},
+                    else: {:error, {"value #{v} is not a positive integer"}}
               end
           end
         else
