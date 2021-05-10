@@ -27,6 +27,9 @@ defmodule BlindTest do
     """
     defstruct f1: "artist",
               f2: "title",
+              f1_scoring: 2,
+              f2_scoring: 3,
+              both_scoring: 8,
               guess_duration: 45,
               transition_duration: 15,
               error_treshold: 0.2
@@ -125,6 +128,15 @@ defmodule BlindTest do
                   if parsed >= 0 && parsed <= 100,
                     do: {:ok, {atom, parsed / 100}},
                     else: {:error, {"value #{v} is not between 0 and 100"}}
+              end
+
+            atom in [:f1_scoring, :f2_scoring, :both_scoring] ->
+              case Integer.parse(v, 10) do
+                :error ->
+                  {:error, "value #{} for key #{k} is invalid (not an integer)"}
+
+                {parsed, _} ->
+                  {:ok, {atom, parsed}}
               end
           end
         else

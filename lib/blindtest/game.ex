@@ -55,14 +55,16 @@ defmodule Game do
     ]
   end
 
-  # points earned by players
-  @points %{:both => 8, :f2 => 3, :f1 => 2}
+  @to_scoring %{:f1 => :f1_scoring, :f2 => :f2_scoring, :both => :both_scoring}
 
   @medals %{1 => "🥇", 2 => "🥈", 3 => "🥉"}
 
   def get_medals(), do: @medals
 
-  def start({author_id, guild_id, channel_id, playlist_url, playlist_name, config}, dl_data) do
+  def start(
+        {author_id, guild_id, channel_id, playlist_url, playlist_name, config},
+        dl_data
+      ) do
     GenStateMachine.start(
       __MODULE__,
       {:waiting,
@@ -165,11 +167,11 @@ defmodule Game do
           value
       end
 
-    # get points
-    points = Map.get(@points, status, 0)
+    # if not found in map, return 0
+    earned = Map.get(data.config, Map.get(@to_scoring, status, status), 0)
 
     # update scores
-    {_, new_scores} = Map.get_and_update!(data.scores, user_id, &{&1, &1 + points})
+    {_, new_scores} = Map.get_and_update!(data.scores, user_id, &{&1, &1 + earned})
 
     # update current guess
     updated_cg = %{
@@ -185,7 +187,7 @@ defmodule Game do
         :current_guess => updated_cg
     }
 
-    resp = {:ok, status, points}
+    resp = {:ok, status, earned}
 
     if updated_data.current_guess.f1_found &&
          updated_data.current_guess.f2_found do
@@ -352,6 +354,13 @@ defmodule Game do
               "**First field** : #{data.config.f1}, **second field** : #{data.config.f2}, **durations** : ▶️ #{
                 data.config.guess_duration
               }s | ⏸️ #{data.config.transition_duration}s"
+          },
+          %Nostrum.Struct.Embed.Field{
+            name: "Scoring",
+            value:
+              "#{data.config.f1_scoring} (#{data.config.f1}) | #{data.config.f2_scoring} (#{
+                data.config.f2
+              }) | #{data.config.both_scoring} (both)"
           }
         ],
         :color => Colors.get_color(:success)
