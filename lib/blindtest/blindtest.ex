@@ -245,6 +245,7 @@ defmodule BlindTest do
   """
   def sanitize_input(input) do
     String.normalize(input, :nfd)
+    |> String.trim()
     |> String.replace(~r/[^a-zA-Z0-9 -]/, "")
     |> String.replace(~r/\s+/, " ")
     |> String.downcase()
