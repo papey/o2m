@@ -372,6 +372,11 @@ defmodule BlindTest do
     end
   end
 
+  def check_channel_id(channel_id) do
+    bt_chan_id = O2M.Application.from_env_to_int(:o2m, :bt_chan)
+    if bt_chan_id == channel_id, do: {:ok, bt_chan_id}, else: {:error, bt_chan_id}
+  end
+
   @doc """
   Check if current blind test process is in guessing mode
 

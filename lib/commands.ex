@@ -442,32 +442,31 @@ Using prefix `#{prefix}` :
     """
     def join(msg) do
       with {:one, _} <- BlindTest.process(),
-           {:ok, channel_id} = Game.channel_id() do
-        if msg.channel_id == channel_id do
-          case Game.add_player(msg.author.id) do
-            {:ok, :added} ->
-              # 👌
-              Nostrum.Api.create_reaction(channel_id, msg.id, %Nostrum.Struct.Emoji{
-                name: Emojos.get(:joined)
-              })
+           {:ok, _} <- BlindTest.check_channel_id(msg.channel_id) do
+        case Game.add_player(msg.author.id) do
+          {:ok, :added} ->
+            # 👌
+            Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
+              name: Emojos.get(:joined)
+            })
 
-              :no_message
+            :no_message
 
-            {:ok, :duplicate} ->
-              # 👌
-              Nostrum.Api.create_reaction(channel_id, msg.id, %Nostrum.Struct.Emoji{
-                name: Emojos.get(:joined)
-              })
+          {:ok, :duplicate} ->
+            # 👌
+            Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
+              name: Emojos.get(:joined)
+            })
 
-              :no_message
+            :no_message
 
-            {:error, :not_transition} ->
-              "You can only join a blind test **between two guesses**"
-          end
-        else
-          "Sorry but you can only interact with blind test in #{channel(channel_id)}"
+          {:error, :not_transition} ->
+            "You can only join a blind test **between two guesses**"
         end
       else
+        {:error, channel_id} ->
+          "Sorry but you can only interact with blind test in #{channel(channel_id)}"
+
         :none ->
           "Can't join a blind test since there is no blind test running 🤣"
       end
@@ -478,22 +477,21 @@ Using prefix `#{prefix}` :
     """
     def leave(msg) do
       with {:one, _} <- BlindTest.process(),
-           {:ok, channel_id} = Game.channel_id() do
-        if msg.channel_id == channel_id do
-          case Game.remove_player(msg.author.id) do
-            {:ok, :removed} ->
-              "User #{msg.author} quit the game... BOOOOOO !"
+           {:ok, _} <- BlindTest.check_channel_id(msg.channel_id) do
+        case Game.remove_player(msg.author.id) do
+          {:ok, :removed} ->
+            "User #{msg.author} quit the game... BOOOOOO !"
 
-            {:error, :not_transition} ->
-              "You can only leave a blind test **between two guesses**"
+          {:error, :not_transition} ->
+            "You can only leave a blind test **between two guesses**"
 
-            {:error, :not_playing} ->
-              "User #{msg.author} please **join a blind** test before leaving one 😛"
-          end
-        else
-          "Sorry but you can only interact with a blind test in #{channel(channel_id)}"
+          {:error, :not_playing} ->
+            "User #{msg.author} please **join a blind** test before leaving one 😛"
         end
       else
+        {:error, channel_id} ->
+          "Sorry but you can only interact with a blind test in #{channel(channel_id)}"
+
         :none ->
           "Can't leave a blind test since there is no blind test running 🙃"
       end
@@ -506,70 +504,69 @@ Using prefix `#{prefix}` :
       guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
       with {:one, _} <- BlindTest.process(),
-           {:ok, channel_id} = Game.channel_id() do
-        if msg.channel_id == channel_id do
-          {:ok, players_id} = Game.get_players()
+           {:ok, _} <- BlindTest.check_channel_id(msg.channel_id) do
+        {:ok, players_id} = Game.get_players()
 
-          if MapSet.size(players_id) != 0 do
-            {:ok, author_id} = Game.get_author()
-            vocal_channel_id = O2M.Application.from_env_to_int(:o2m, :bt_vocal)
-            me = Nostrum.Cache.Me.get()
+        if MapSet.size(players_id) != 0 do
+          {:ok, author_id} = Game.get_author()
+          vocal_channel_id = O2M.Application.from_env_to_int(:o2m, :bt_vocal)
+          me = Nostrum.Cache.Me.get()
 
-            players_in_vocal =
-              Nostrum.Cache.GuildCache.get!(guild_id)
-              |> Map.get(:voice_states)
-              |> Enum.filter(fn v -> v.channel_id == vocal_channel_id end)
-              |> Enum.filter(fn v -> v.user_id != me.id && v.user_id != author_id end)
-              |> Enum.map(fn v -> v.user_id end)
-              |> MapSet.new()
+          players_in_vocal =
+            Nostrum.Cache.GuildCache.get!(guild_id)
+            |> Map.get(:voice_states)
+            |> Enum.filter(fn v -> v.channel_id == vocal_channel_id end)
+            |> Enum.filter(fn v -> v.user_id != me.id && v.user_id != author_id end)
+            |> Enum.map(fn v -> v.user_id end)
+            |> MapSet.new()
 
-            list =
-              Enum.reduce(
-                MapSet.to_list(players_id),
-                "**Player(s) in this session (#{MapSet.size(players_id)}) :**\n",
-                fn elem, acc ->
-                  "#{acc}\n\t- #{mention(elem)}"
-                end
-              )
-
-            players_id = MapSet.delete(players_id, author_id)
-
-            missing_in_game =
-              cond do
-                MapSet.subset?(players_in_vocal, players_id) ->
-                  "**Every member in vocal channel is in game**"
-
-                true ->
-                  MapSet.difference(players_in_vocal, players_id)
-                  |> MapSet.to_list()
-                  |> Enum.reduce(
-                    "**Missing player(s) from vocal channel :**\n",
-                    fn elem, acc -> "#{acc}\n\t- #{mention(elem)}" end
-                  )
+          list =
+            Enum.reduce(
+              MapSet.to_list(players_id),
+              "**Player(s) in this session (#{MapSet.size(players_id)}) :**\n",
+              fn elem, acc ->
+                "#{acc}\n\t- #{mention(elem)}"
               end
+            )
 
-            missing_in_vocal =
-              cond do
-                MapSet.subset?(players_id, players_in_vocal) ->
-                  "**Every player is connected to the vocal channel**"
+          players_id = MapSet.delete(players_id, author_id)
 
-                true ->
-                  MapSet.difference(players_id, players_in_vocal)
-                  |> MapSet.to_list()
-                  |> Enum.reduce(
-                    "**Missing player(s) in vocal channel :**\n",
-                    fn elem, acc -> "#{acc}\n\t- #{mention(elem)}" end
-                  )
-              end
+          missing_in_game =
+            cond do
+              MapSet.subset?(players_in_vocal, players_id) ->
+                "**Every member in vocal channel is in game**"
 
-            Enum.join([list, missing_in_game, missing_in_vocal], "\n\n")
-          else
-            "There is no players yet in this session"
-          end
+              true ->
+                MapSet.difference(players_in_vocal, players_id)
+                |> MapSet.to_list()
+                |> Enum.reduce(
+                  "**Missing player(s) from vocal channel :**\n",
+                  fn elem, acc -> "#{acc}\n\t- #{mention(elem)}" end
+                )
+            end
+
+          missing_in_vocal =
+            cond do
+              MapSet.subset?(players_id, players_in_vocal) ->
+                "**Every player is connected to the vocal channel**"
+
+              true ->
+                MapSet.difference(players_id, players_in_vocal)
+                |> MapSet.to_list()
+                |> Enum.reduce(
+                  "**Missing player(s) in vocal channel :**\n",
+                  fn elem, acc -> "#{acc}\n\t- #{mention(elem)}" end
+                )
+            end
+
+          Enum.join([list, missing_in_game, missing_in_vocal], "\n\n")
         else
-          "Sorry but you can only interact with blind test in #{channel(channel_id)}"
+          "There is no players yet in this session"
         end
       else
+        {:error, channel_id} ->
+          "Sorry but you can only interact with blind test in #{channel(channel_id)}"
+
         :none ->
           "Can't list players in a blind test since there is no a blind test running 🙃"
       end
@@ -583,43 +580,43 @@ Using prefix `#{prefix}` :
       guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
       with {:one, _} <- BlindTest.process(),
-           :member <- is_member(msg.author, adm, guild_id) do
-        {:ok, channel_id} = Game.channel_id()
+           :member <- is_member(msg.author, adm, guild_id),
+           {:ok, _} <- BlindTest.check_channel_id(msg.channel_id) do
+        case Game.start_game() do
+          {:ok, _} ->
+            Nostrum.Api.create_message!(
+              msg.channel_id,
+              embed: %Nostrum.Struct.Embed{
+                :title => "🏁 Blind test is starting !",
+                :description => "Good luck and have fun !",
+                :color => Colors.get_color(:success)
+              }
+            )
 
-        if msg.channel_id == channel_id do
-          case Game.start_game() do
-            {:ok, _} ->
-              Nostrum.Api.create_message!(
-                msg.channel_id,
-                embed: %Nostrum.Struct.Embed{
-                  :title => "🏁 Blind test is starting !",
-                  :description => "Good luck and have fun !",
-                  :color => Colors.get_color(:success)
-                }
-              )
+          {:error, :no_guess} ->
+            "Sorry but there is no guess for this game"
 
-            {:error, :no_guess} ->
-              "Sorry but there is no guess for this game"
+          {:error, :vocal_not_ready} ->
+            "Sorry but vocal channel is not ready"
 
-            {:error, :vocal_not_ready} ->
-              "Sorry but vocal channel is not ready"
+          {:error, :no_players} ->
+            "Sorry but I can't start a blind test without players... 🙃"
 
-            {:error, :no_players} ->
-              "Sorry but I can't start a blind test without players... 🙃"
+          {:error, :not_ready} ->
+            "Sorry but blind test is not ready yet ⏳"
 
-            {:error, :not_ready} ->
-              "Sorry but blind test is not ready yet ⏳"
+          {:error, :running} ->
+            "Sorry but a blind test is already running 🎮"
 
-            {:error, :running} ->
-              "Sorry but a blind test is already running 🎮"
-
-            {:error, reason} ->
-              reason
-          end
+          {:error, reason} ->
+            reason
         end
       else
+        {:error, channel_id} ->
+          "Sorry but you can only interact with blind test in #{channel(channel_id)}"
+
         :none ->
-          "Can't list players in a blind test since there is no blind test running 🙃"
+          "Can't list start a blind test since there is no blind test running 🙃"
 
         :not_member ->
           "#{mention(msg.author.id)} do not have permission to start a blind test"
@@ -630,21 +627,19 @@ Using prefix `#{prefix}` :
     Handle ranking command
     """
     def ranking(msg) do
-      with {:one, _} <- BlindTest.process() do
-        {:ok, channel_id} = Game.channel_id()
+      with {:one, _} <- BlindTest.process(),
+           {:ok, _} <- BlindTest.check_channel_id(msg.channel_id) do
+        case Game.get_ranking() do
+          {:ok, message} ->
+            message
 
-        if msg.channel_id == channel_id do
-          case Game.get_ranking() do
-            {:ok, message} ->
-              message
-
-            {:error, :no_ranking} ->
-              "Sorry but there is no ranking (yet) in this blind test"
-          end
-        else
-          "Sorry but you can only interact with blind test in #{channel(channel_id)}"
+          {:error, :no_ranking} ->
+            "Sorry but there is no ranking (yet) in this blind test"
         end
       else
+        {:error, channel_id} ->
+          "Sorry but you can only interact with blind test in #{channel(channel_id)}"
+
         :none ->
           "Can't get scores for a blind test since there is no blind test running 🙃"
       end
@@ -655,44 +650,41 @@ Using prefix `#{prefix}` :
     """
     def pass(msg) do
       with {:one, _} <- BlindTest.process(),
-           {:ok, channel_id} <- Game.channel_id(),
+           {:ok, _} <- BlindTest.check_channel_id(msg.channel_id),
            {:ok, players} <- Game.get_players(),
            true <- MapSet.member?(players, msg.author.id) do
-        "A blind test is currently running at #{channel(channel_id)}"
+        case Game.player_pass(msg.author.id) do
+          {:ok, :passed} ->
+            # ⏩
+            Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
+              name: Emojos.get(:passed)
+            })
 
-        if msg.channel_id == channel_id do
-          case Game.player_pass(msg.author.id) do
-            {:ok, :passed} ->
-              # ⏩
-              Nostrum.Api.create_reaction(channel_id, msg.id, %Nostrum.Struct.Emoji{
-                name: Emojos.get(:passed)
-              })
+            :no_message
 
-              :no_message
+          {:ok, :skips} ->
+            # ⏩
+            Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
+              name: Emojos.get(:passed)
+            })
 
-            {:ok, :skips} ->
-              # ⏩
-              Nostrum.Api.create_reaction(channel_id, msg.id, %Nostrum.Struct.Emoji{
-                name: Emojos.get(:passed)
-              })
+            "STOP THE COUNT, I skip this guess"
 
-              "STOP THE COUNT, I skip this guess"
+          {:ok, :already_passed} ->
+            # 🖕
+            Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
+              name: Emojos.get(:already_passed)
+            })
 
-            {:ok, :already_passed} ->
-              # 🖕
-              Nostrum.Api.create_reaction(channel_id, msg.id, %Nostrum.Struct.Emoji{
-                name: Emojos.get(:already_passed)
-              })
+            :no_message
 
-              :no_message
-
-            {:error, :not_guessing} ->
-              "You can only pass a track when **guessing one**"
-          end
-        else
-          "Sorry but you can only interact with blind test in #{channel(channel_id)}"
+          {:error, :not_guessing} ->
+            "You can only pass a track when **guessing one**"
         end
       else
+        {:ok, channel_id} ->
+          "Sorry but you can only interact with blind test in #{channel(channel_id)}"
+
         false ->
           "#{mention(msg.author.id)} join a game if you want to use this command..."
 
@@ -736,25 +728,23 @@ Using prefix `#{prefix}` :
       guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
       with {:one, _} <- BlindTest.process(),
-           :member <- is_member(msg.author, adm, guild_id) do
-        {:ok, channel_id} = Game.channel_id()
+           :member <- is_member(msg.author, adm, guild_id),
+           {:ok, _} <- BlindTest.check_channel_id(msg.channel_id) do
+        BlindTest.destroy()
+        Cache.clean()
 
-        if msg.channel_id == channel_id do
-          BlindTest.destroy()
-          Cache.clean()
-
-          Nostrum.Api.create_message!(
-            msg.channel_id,
-            embed: %Nostrum.Struct.Embed{
-              :title => "Okay ! Time to clean up ! 🧹",
-              :description => "It was a pleasure ! See you next time ! 💋",
-              :color => Colors.get_color(:danger)
-            }
-          )
-        else
-          "Sorry but you can only interact with blind test in #{channel(channel_id)}"
-        end
+        Nostrum.Api.create_message!(
+          msg.channel_id,
+          embed: %Nostrum.Struct.Embed{
+            :title => "Okay ! Time to clean up ! 🧹",
+            :description => "It was a pleasure ! See you next time ! 💋",
+            :color => Colors.get_color(:danger)
+          }
+        )
       else
+        {:error, channel_id} ->
+          "Sorry but you can only interact with blind test in #{channel(channel_id)}"
+
         :none ->
           "Can't destroy a blind test since there is no blind test running 🙃"
 
