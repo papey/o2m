@@ -820,6 +820,8 @@ Using prefix `#{prefix}` :
 
       Only the first get the points !
 
+      Default scoring is :
+
       \t - both fields in the same message : 8 points
       \t - first field  found : 2 points
       \t - second field found : 3 points
