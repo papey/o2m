@@ -532,31 +532,27 @@ Using prefix `#{prefix}` :
           players_id = MapSet.delete(players_id, author_id)
 
           missing_in_game =
-            cond do
-              MapSet.subset?(players_in_vocal, players_id) ->
-                "**Every member in vocal channel is in game**"
-
-              true ->
-                MapSet.difference(players_in_vocal, players_id)
-                |> MapSet.to_list()
-                |> Enum.reduce(
-                  "**Missing player(s) from vocal channel :**\n",
-                  fn elem, acc -> "#{acc}\n\t- #{mention(elem)}" end
-                )
+            if MapSet.subset?(players_in_vocal, players_id) do
+              "**Every member in vocal channel is in game**"
+            else
+              MapSet.difference(players_in_vocal, players_id)
+              |> MapSet.to_list()
+              |> Enum.reduce(
+                "**Missing player(s) from vocal channel :**\n",
+                fn elem, acc -> "#{acc}\n\t- #{mention(elem)}" end
+              )
             end
 
           missing_in_vocal =
-            cond do
-              MapSet.subset?(players_id, players_in_vocal) ->
-                "**Every player is connected to the vocal channel**"
-
-              true ->
-                MapSet.difference(players_id, players_in_vocal)
-                |> MapSet.to_list()
-                |> Enum.reduce(
-                  "**Missing player(s) in vocal channel :**\n",
-                  fn elem, acc -> "#{acc}\n\t- #{mention(elem)}" end
-                )
+            if MapSet.subset?(players_id, players_in_vocal) do
+              "**Every player is connected to the vocal channel**"
+            else
+              MapSet.difference(players_id, players_in_vocal)
+              |> MapSet.to_list()
+              |> Enum.reduce(
+                "**Missing player(s) in vocal channel :**\n",
+                fn elem, acc -> "#{acc}\n\t- #{mention(elem)}" end
+              )
             end
 
           Enum.join([list, missing_in_game, missing_in_vocal], "\n\n")
@@ -941,16 +937,7 @@ Using prefix `#{prefix}` :
             Enum.reduce(games, {[], %{}}, fn {_id, game}, {names, total} ->
               next_total =
                 Enum.reduce(game.scores, total, fn {id, score}, acc ->
-                  {_, updated} =
-                    Map.get_and_update(acc, id, fn current ->
-                      if current == nil do
-                        {nil, score}
-                      else
-                        {current, score + current}
-                      end
-                    end)
-
-                  updated
+                  Map.update(acc, id, score, &(&1 + score))
                 end)
 
               {names ++ ["`#{game.name}`"], next_total}

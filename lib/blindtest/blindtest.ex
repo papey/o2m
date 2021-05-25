@@ -351,24 +351,22 @@ defmodule BlindTest do
   end
 
   def status() do
-    cond do
-      Process.whereis(Game) != nil && Process.whereis(Downloader.Worker) != nil ->
-        :game_downloading
+    if Process.whereis(Game) != nil do
+      cond do
+        Process.whereis(Downloader.Worker) != nil ->
+          :game_downloading
 
-      Process.whereis(Game) != nil ->
-        cond do
-          BlindTest.finished?() ->
-            :game_finished
+        BlindTest.finished?() ->
+          :game_finished
 
-          BlindTest.started?() ->
-            :game_started
+        BlindTest.started?() ->
+          :game_started
 
-          true ->
-            :game_not_started
-        end
-
-      true ->
-        :none
+        true ->
+          :game_not_started
+      end
+    else
+      :none
     end
   end
 
@@ -416,9 +414,7 @@ defmodule BlindTest do
     Nostrum.Voice.leave_channel(guild_id)
     # leave the channel
     # kill game process and downloader
-    if Process.whereis(Game) != nil do
-      Process.whereis(Game) |> Process.exit(:kill)
-    end
+    if Process.whereis(Game) != nil, do: Process.whereis(Game) |> Process.exit(:kill)
   end
 
   @doc """
