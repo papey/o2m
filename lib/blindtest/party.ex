@@ -1,34 +1,49 @@
 defmodule Party do
   use Agent
 
-  @init {1, %{}}
+  defstruct counter: 1, games: %{}, players: MapSet.new()
 
   defmodule Game do
     defstruct name: "", scores: %{}
   end
 
   def start_link() do
-    Agent.start_link(fn -> @init end, name: __MODULE__)
+    Agent.start_link(fn -> %__MODULE__{} end, name: __MODULE__)
   end
 
   def reset() do
-    Agent.update(__MODULE__, fn _ -> @init end)
+    Agent.update(__MODULE__, fn _ -> %__MODULE__{} end)
   end
 
-  def add(game) do
-    Agent.update(__MODULE__, fn {counter, games} ->
-      {counter + 1, Map.put(games, counter, game)}
+  def add_game(game) do
+    Agent.update(__MODULE__, fn party ->
+      %{party | counter: party.counter + 1, games: Map.put(party.games, party.counter + 1, game)}
     end)
   end
 
-  def list() do
-    Agent.get(__MODULE__, fn {_, games} -> games end)
-    |> Enum.to_list()
+  def list_games() do
+    Agent.get(__MODULE__, &Enum.to_list(&1.games))
   end
 
-  def get(id) do
-    Agent.get(__MODULE__, fn {_, games} ->
-      Enum.filter(games, fn {key, _data} -> key == id end)
+  def get_game(id) do
+    Agent.get(__MODULE__, fn party ->
+      Enum.filter(party.games, fn {key, _data} -> key == id end)
+    end)
+  end
+
+  def add_player(pid) do
+    Agent.update(__MODULE__, fn party ->
+      %{party | players: MapSet.put(party.players, pid)}
+    end)
+  end
+
+  def list_players() do
+    Agent.get(__MODULE__, &MapSet.to_list(&1.players))
+  end
+
+  def remove_player(pid) do
+    Agent.update(__MODULE__, fn party ->
+      %{party | players: MapSet.delete(party.players, pid)}
     end)
   end
 end

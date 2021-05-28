@@ -62,13 +62,14 @@ defmodule Game do
   def get_medals(), do: @medals
 
   def start(
-        {author_id, guild_id, channel_id, playlist_url, playlist_name, config},
+        {author_id, guild_id, channel_id, playlist_url, playlist_name, config, party_players},
         dl_data
       ) do
     GenStateMachine.start(
       __MODULE__,
       {:waiting,
        %Game.Data{
+         players: party_players,
          downloader: dl_data,
          author_id: author_id,
          playlist_url: playlist_url,
@@ -345,6 +346,10 @@ defmodule Game do
             value: data.name
           },
           %Nostrum.Struct.Embed.Field{
+            name: "Auto-join",
+            value: "#{MapSet.size(data.players)} player(s)"
+          },
+          %Nostrum.Struct.Embed.Field{
             name: "Join command",
             value: "`#{Application.fetch_env!(:o2m, :prefix)}bt join`"
           },
@@ -478,7 +483,7 @@ defmodule Game do
 
     Leaderboard.update(data.scores)
 
-    Party.add(%Party.Game{name: data.name, scores: data.scores})
+    Party.add_game(%Party.Game{name: data.name, scores: data.scores})
 
     Nostrum.Api.create_message(data.channel_id, generate_ranking(data.scores))
 

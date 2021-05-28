@@ -67,9 +67,11 @@ defmodule BlindTest do
       # use provided args and fallback to filename as default
       playlist_name = if args == [], do: file.filename, else: Enum.join(args, " ")
 
+      party_players = Party.list_players() |> MapSet.new()
+
       {:ok, _} =
         Game.start(
-          {author.id, guild, channel_id, file.url, playlist_name, config},
+          {author.id, guild, channel_id, file.url, playlist_name, config, party_players},
           {guess_entries, cache, channel_id, from_channel, config.guess_duration}
         )
 

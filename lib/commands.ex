@@ -771,6 +771,9 @@ Using prefix `#{prefix}` :
     - **status**: fetch blind test status
 
     __Party commands__
+    - **party join**: join this party
+    - **party leave**: leave this party
+    - **party players**: list players in this party
     - **party overview**: get an overview of the current party
     - **party list**: list all the games for this party
     - **party get <ID>**: get data about a specific game
@@ -788,7 +791,7 @@ Using prefix `#{prefix}` :
 
     - **rules**: print rules and various informations about blind test
     - **help**: to get this help message
-    - **check**: to check if a blindtest playlist is valid, this message should be a private message to the bot with a `.csv` file attached to it (`csv format: youtube.com/link,artist,title`)
+    - **check**: to check if a blindtest playlist is valid
 
     __How to guide__ : https://github.com/papey/o2m/wiki"
     end
@@ -916,7 +919,7 @@ Using prefix `#{prefix}` :
     end
 
     def party(_msg, ["list" | _]) do
-      case Party.list() do
+      case Party.list_games() do
         [] ->
           "No games yet in this party"
 
@@ -928,7 +931,7 @@ Using prefix `#{prefix}` :
     end
 
     def party(_msg, ["overview" | _]) do
-      case Party.list() do
+      case Party.list_games() do
         [] ->
           "No games yet in this party"
 
@@ -954,7 +957,7 @@ Using prefix `#{prefix}` :
     def party(_msg, ["get", id | _]) do
       case Integer.parse(id) do
         {val, _} ->
-          case Party.get(val) do
+          case Party.get_game(val) do
             [] ->
               "No game found for game ID #{id}"
 
@@ -965,6 +968,45 @@ Using prefix `#{prefix}` :
         _ ->
           "Result ID must be a valid integer value (received #{id})"
       end
+    end
+
+    def party(msg, ["join" | _]) do
+      Party.add_player(msg.author.id)
+
+      # 👌
+      Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
+        name: Emojos.get(:joined)
+      })
+
+      :no_message
+    end
+
+    def party(msg, ["leave" | _]) do
+      Party.remove_player(msg.author.id)
+
+      "XOXO #{Discord.mention(msg.author.id)} 😗"
+    end
+
+    def party(_, ["players" | _]) do
+      case Party.list_players() do
+        [] ->
+          "No players yet in this party"
+
+        players ->
+          total = length(players)
+
+          Enum.reduce(
+            players,
+            "**Player(s) in this party (#{total}) :**\n",
+            fn elem, acc ->
+              "#{acc}\n\t- #{mention(elem)}"
+            end
+          )
+      end
+    end
+
+    def party(_, []) do
+      "Missing instruction for party subcommand"
     end
 
     def party(_msg, input) do
