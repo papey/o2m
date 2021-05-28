@@ -8,7 +8,7 @@ defmodule BlindTest do
   @max_field_len 100
 
   # min duration for both song and transition
-  @min_duration 2
+  @min_duration 1
 
   defmodule GuessEntry do
     @moduledoc """
