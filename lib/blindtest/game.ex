@@ -172,7 +172,7 @@ defmodule Game do
     earned = Map.get(data.config, Map.get(@to_scoring, status, status), 0)
 
     # update scores
-    {_, new_scores} = Map.get_and_update!(data.scores, user_id, &{&1, &1 + earned})
+    new_scores = Map.update(data.scores, user_id, 0, &(&1 + earned))
 
     # update current guess
     updated_cg = %{
