@@ -121,7 +121,7 @@ defmodule BlindTest do
                     else: {:error, {"value #{v} is not an integer value >= #{@min_duration}"}}
               end
 
-            atom in [:error_treshold] ->
+            atom in [:error_threshold] ->
               case Integer.parse(v, 10) do
                 :error ->
                   {:error, "value #{v} for key #{k} is invalid (not an integer)"}
