@@ -713,7 +713,7 @@ Using prefix `#{prefix}` :
         BlindTest.destroy()
         Cache.clean()
 
-        Nostrum.Api.create_message!(
+        Nostrum.Api.create_message(
           msg.channel_id,
           embed: %Nostrum.Struct.Embed{
             :title => "Okay ! Time to clean up ! 🧹",
@@ -721,6 +721,8 @@ Using prefix `#{prefix}` :
             :color => Colors.get_color(:danger)
           }
         )
+
+        :no_message
       else
         {:error, channel_id} ->
           "Sorry but you can only interact with blind test in #{channel(channel_id)}"
