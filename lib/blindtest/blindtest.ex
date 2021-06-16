@@ -60,9 +60,7 @@ defmodule BlindTest do
          {:ok, _} <-
            Nostrum.Api.create_message(
              from_channel,
-             "Blind test init started, using `#{file.filename}` in channel #{
-               Discord.channel(channel_id)
-             }"
+             "Blind test init started, using `#{file.filename}` in channel #{Discord.channel(channel_id)}"
            ) do
       # use provided args and fallback to filename as default
       playlist_name = if args == [], do: file.filename, else: Enum.join(args, " ")

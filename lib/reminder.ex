@@ -30,9 +30,7 @@ defmodule Reminder do
             %Nostrum.Struct.Embed.Field{
               name: "Link",
               value:
-                "https://discord.com/channels/#{reaction.guild_id}/#{reaction.channel_id}/#{
-                  reaction.message_id
-                }"
+                "https://discord.com/channels/#{reaction.guild_id}/#{reaction.channel_id}/#{reaction.message_id}"
             }
           ]
         }

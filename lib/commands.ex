@@ -121,9 +121,7 @@ Using prefix `#{prefix}` :
 
         false ->
           # if not, fallback to a default one
-          "This template is invalid, please ensure all required keys are set (__mandatory keys : #{
-            m2s()
-          }__) and respect length limit (**#{Announcements.limit()} characters)**"
+          "This template is invalid, please ensure all required keys are set (__mandatory keys : #{m2s()}__) and respect length limit (**#{Announcements.limit()} characters)**"
       end
     end
 
@@ -182,19 +180,13 @@ Using prefix `#{prefix}` :
     def help(args) do
       case Enum.join(args, " ") do
         "add" ->
-          "Here is an example of \`add\` subcommand : \`\`\`#{
-            Application.fetch_env!(:o2m, :prefix)
-          }tmpl add #[show] just publish a new episode #[title], check it at #[url]\`\`\`"
+          "Here is an example of \`add\` subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}tmpl add #[show] just publish a new episode #[title], check it at #[url]\`\`\`"
 
         "list" ->
-          "Here is an example of \`list\` subcommand : \`\`\`#{
-            Application.fetch_env!(:o2m, :prefix)
-          }tmpl list\`\`\`"
+          "Here is an example of \`list\` subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}tmpl list\`\`\`"
 
         "delete" ->
-          "Here is an example of \`delete\` subcommand, using ID from list subcommand : \`\`\`#{
-            Application.fetch_env!(:o2m, :prefix)
-          }tmpl delete acfe\`\`\`"
+          "Here is an example of \`delete\` subcommand, using ID from list subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}tmpl delete acfe\`\`\`"
 
         sub ->
           "Help for subcommand #{sub} not available"
@@ -284,14 +276,10 @@ Using prefix `#{prefix}` :
     def help(args) do
       case Enum.join(args, " ") do
         "album" ->
-          "Here is an example of \`album\` subcommand : \`\`\`#{
-            Application.fetch_env!(:o2m, :prefix)
-          }mo album korn // follow the leader \`\`\`"
+          "Here is an example of \`album\` subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}mo album korn // follow the leader \`\`\`"
 
         "band" ->
-          "Here is an example of \`band\` subcommand : \`\`\`#{
-            Application.fetch_env!(:o2m, :prefix)
-          }mo band korn\`\`\`"
+          "Here is an example of \`band\` subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}mo band korn\`\`\`"
 
         sub ->
           "Subcommand #{sub} not available"
@@ -327,9 +315,7 @@ Using prefix `#{prefix}` :
           {:ok, channel_id} = Game.channel_id()
           guild = Nostrum.Cache.GuildCache.get!(guild_id)
 
-          "There is already a blind test in progress in channel #{channel(channel_id)} on guild **#{
-            guild.name
-          }**, destroy it first before creating a new one"
+          "There is already a blind test in progress in channel #{channel(channel_id)} on guild **#{guild.name}**, destroy it first before creating a new one"
 
         {:error, reason} ->
           "Error, #{reason}"
@@ -424,9 +410,7 @@ Using prefix `#{prefix}` :
 
         if errors != 0,
           do:
-            "❌ **#{errors} download error(s)** for #{length(guess_entries)} entries in playlist `#{
-              filename
-            }`",
+            "❌ **#{errors} download error(s)** for #{length(guess_entries)} entries in playlist `#{filename}`",
           else: "✅ No download errors in playlist `#{filename}` 👌"
       else
         {:error, reason} ->
@@ -843,10 +827,8 @@ Using prefix `#{prefix}` :
           |> Enum.reduce(
             "**Leaderboard (top 15)**",
             fn {{user, score}, index}, acc ->
-              "#{acc}\n#{index + 1} | #{mention(user)} - **#{score}** point(s)#{
-                if index + 1 <= 3,
-                  do: " - #{Map.get(Game.get_medals(), index + 1)}"
-              }"
+              "#{acc}\n#{index + 1} | #{mention(user)} - **#{score}** point(s)#{if index + 1 <= 3,
+                do: " - #{Map.get(Game.get_medals(), index + 1)}"}"
             end
           )
 
@@ -946,9 +928,7 @@ Using prefix `#{prefix}` :
               {names ++ ["`#{game.name}`"], next_total}
             end)
 
-          "**All games for this party :** #{Enum.join(names, " / ")}\n\n**Ranking for this party :\n**#{
-            Game.generate_ranking(total)
-          }"
+          "**All games for this party :** #{Enum.join(names, " / ")}\n\n**Ranking for this party :\n**#{Game.generate_ranking(total)}"
       end
     end
 

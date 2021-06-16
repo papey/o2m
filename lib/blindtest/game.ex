@@ -356,16 +356,12 @@ defmodule Game do
           %Nostrum.Struct.Embed.Field{
             name: "Rules",
             value:
-              "**First field** : #{data.config.f1}, **second field** : #{data.config.f2}, **durations** : ▶️ #{
-                data.config.guess_duration
-              }s | ⏸️ #{data.config.transition_duration}s"
+              "**First field** : #{data.config.f1}, **second field** : #{data.config.f2}, **durations** : ▶️ #{data.config.guess_duration}s | ⏸️ #{data.config.transition_duration}s"
           },
           %Nostrum.Struct.Embed.Field{
             name: "Scoring",
             value:
-              "#{data.config.f1_scoring} (#{data.config.f1}) | #{data.config.f2_scoring} (#{
-                data.config.f2
-              }) | #{data.config.both_scoring} (both)"
+              "#{data.config.f1_scoring} (#{data.config.f1}) | #{data.config.f2_scoring} (#{data.config.f2}) | #{data.config.both_scoring} (both)"
           }
         ],
         :color => Colors.get_color(:success)
@@ -431,9 +427,7 @@ defmodule Game do
       data.channel_id,
       embed: %Nostrum.Struct.Embed{
         title:
-          "🎼 It was #{BlindTest.titleize(Enum.max(current_guess.entry.f1s))} - #{
-            BlindTest.titleize(Enum.max(current_guess.entry.f2s))
-          }",
+          "🎼 It was #{BlindTest.titleize(Enum.max(current_guess.entry.f1s))} - #{BlindTest.titleize(Enum.max(current_guess.entry.f2s))}",
         description: message,
         color: color,
         url: current_guess.entry.url,
@@ -534,10 +528,8 @@ defmodule Game do
     |> Enum.reduce(
       "",
       fn {{user, score}, index}, acc ->
-        "#{acc}\n#{index + 1} | #{Discord.mention(user)} - **#{score}** point(s)#{
-          if index + 1 <= 3,
-            do: " - #{Map.get(@medals, index + 1)}"
-        }"
+        "#{acc}\n#{index + 1} | #{Discord.mention(user)} - **#{score}** point(s)#{if index + 1 <= 3,
+          do: " - #{Map.get(@medals, index + 1)}"}"
       end
     )
   end
