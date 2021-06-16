@@ -573,6 +573,8 @@ Using prefix `#{prefix}` :
               }
             )
 
+            :no_message
+
           {:error, :no_guess} ->
             "Sorry but there is no guess for this game"
 
