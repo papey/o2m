@@ -3,7 +3,7 @@ defmodule Party do
 
   defstruct counter: 1, games: %{}, players: MapSet.new()
 
-  defmodule Game do
+  defmodule GameResult do
     defstruct name: "", scores: %{}
   end
 

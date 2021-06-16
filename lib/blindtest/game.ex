@@ -477,7 +477,7 @@ defmodule Game do
 
     Leaderboard.update(data.scores)
 
-    Party.add_game(%Party.Game{name: data.name, scores: data.scores})
+    Party.add_game(%Party.GameResult{name: data.name, scores: data.scores})
 
     Nostrum.Api.create_message(data.channel_id, generate_ranking(data.scores))
 
