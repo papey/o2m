@@ -220,8 +220,7 @@ defmodule Game do
     {:keep_state_and_data, [{:reply, from, {:error, :not_guessing}}]}
   end
 
-  def handle_event({:call, from}, {:leave, user_id}, state, data)
-      when state == :ready or state == :transition or state == :waiting do
+  def handle_event({:call, from}, {:leave, user_id}, _, data) do
     if MapSet.member?(data.players, user_id) do
       {:keep_state, %{data | :players => MapSet.delete(data.players, user_id)},
        [{:reply, from, {:ok, :removed}}]}
@@ -230,28 +229,19 @@ defmodule Game do
     end
   end
 
-  def handle_event({:call, from}, {:leave, _user_id}, _state, _data) do
-    {:keep_state_and_data, [{:reply, from, {:error, :not_transition}}]}
-  end
+  def handle_event({:call, from}, {:join, user_id}, _, data) do
+    players = MapSet.put(data.players, user_id)
 
-  def handle_event({:call, from}, {:join, user_id}, state, data)
-      when state == :waiting or state == :ready or state == :transition do
-    updated = MapSet.put(data.players, user_id)
-
-    if data.players != updated do
+    if MapSet.size(data.players) != MapSet.size(players) do
       {:keep_state,
        %{
          data
-         | :players => MapSet.put(data.players, user_id),
+         | :players => players,
            :scores => Map.put(data.scores, user_id, 0)
        }, [{:reply, from, {:ok, :added}}]}
     else
       {:keep_state_and_data, [{:reply, from, {:ok, :duplicate}}]}
     end
-  end
-
-  def handle_event({:call, from}, {:join, _user_id}, _state, _data) do
-    {:keep_state_and_data, [{:reply, from, {:error, :not_transition}}]}
   end
 
   # Handlers when timeouts triggers
