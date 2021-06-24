@@ -29,7 +29,8 @@ defmodule Metalorgie do
 
     # Concat string, but before apply a downcase operation on all list members
     search =
-      Enum.map(band, fn e -> String.downcase(e) end)
+      band
+      |> Enum.map(fn e -> String.downcase(e) end)
       |> Enum.join(" ")
 
     # Forge url by encoding params
@@ -116,7 +117,11 @@ defmodule Metalorgie do
       "https://www.metalorgie.com/groupe/korn/31745_the-nothing"
   """
   def forge_album_url(band, album, id) do
-    slug = album |> String.replace(":", "") |> String.replace(" ", "-")
+    slug =
+      album
+      |> String.replace(":", "")
+      |> String.replace(" ", "-")
+
     "#{Metalorgie.get_config_url()}/groupe/#{band}/#{id}_#{slug}"
   end
 end

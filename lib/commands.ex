@@ -95,7 +95,10 @@ Using prefix `#{prefix}` :
     def add(args) do
       # get template from args
       [template | _] =
-        Enum.join(args, " ") |> String.split("//") |> Enum.map(fn e -> String.trim(e) end)
+        args
+        |> Enum.join(" ")
+        |> String.split("//")
+        |> Enum.map(fn e -> String.trim(e) end)
 
       # get all keys
       keys = get_keys(template)
@@ -152,7 +155,8 @@ Using prefix `#{prefix}` :
     def delete(args) do
       # get hash from args
       hash =
-        Enum.join(args, " ")
+        args
+        |> Enum.join(" ")
         |> String.split("//")
         |> Enum.map(fn e -> String.trim(e) end)
         |> Enum.at(0)
@@ -251,7 +255,10 @@ Using prefix `#{prefix}` :
     # If args provided
     def album(args) do
       [band | album] =
-        Enum.join(args, " ") |> String.split("//") |> Enum.map(fn e -> String.trim(e) end)
+        args
+        |> Enum.join(" ")
+        |> String.split("//")
+        |> Enum.map(fn e -> String.trim(e) end)
 
       case get_album(String.split(band, " "), String.split(Enum.at(album, 0), " ")) do
         {:ok, album} ->
@@ -497,7 +504,8 @@ Using prefix `#{prefix}` :
           me = Nostrum.Cache.Me.get()
 
           players_in_vocal =
-            Nostrum.Cache.GuildCache.get!(guild_id)
+            guild_id
+            |> Nostrum.Cache.GuildCache.get!()
             |> Map.get(:voice_states)
             |> Enum.filter(fn v -> v.channel_id == vocal_channel_id end)
             |> Enum.filter(fn v -> v.user_id != me.id && v.user_id != author_id end)
@@ -519,7 +527,8 @@ Using prefix `#{prefix}` :
             if MapSet.subset?(players_in_vocal, players_id) do
               "**Every member in vocal channel is in game**"
             else
-              MapSet.difference(players_in_vocal, players_id)
+              players_in_vocal
+              |> MapSet.difference(players_id)
               |> MapSet.to_list()
               |> Enum.reduce(
                 "**Missing player(s) from vocal channel :**\n",

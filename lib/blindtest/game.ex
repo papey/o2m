@@ -373,13 +373,15 @@ defmodule Game do
       %Nostrum.Struct.Embed.Field{
         name: "Accepted answers for _#{data.config.f1}_",
         value:
-          Enum.map(current_guess.entry.f1s, &BlindTest.titleize/1)
+          current_guess.entry.f1s
+          |> Enum.map(&BlindTest.titleize/1)
           |> Enum.join(", ")
       },
       %Nostrum.Struct.Embed.Field{
         name: "Accepted answers for _#{data.config.f2}_",
         value:
-          Enum.map(current_guess.entry.f2s, &BlindTest.titleize/1)
+          current_guess.entry.f2s
+          |> Enum.map(&BlindTest.titleize/1)
           |> Enum.join(", ")
       }
     ]

@@ -62,7 +62,9 @@ defmodule Announcements do
   Present mandatory place holders as a string
   """
   def m2s() do
-    Enum.reduce(@mandatory, "", fn e, acc -> "#{acc} #[#{e}]" end) |> String.trim()
+    @mandatory
+    |> Enum.reduce("", fn e, acc -> "#{acc} #[#{e}]" end)
+    |> String.trim()
   end
 
   @doc """
@@ -127,7 +129,9 @@ defmodule Announcements do
     @limit 10
 
     def genkey(template) do
-      :crypto.hash(:md5, template) |> Base.encode16() |> String.slice(0..3)
+      :crypto.hash(:md5, template)
+      |> Base.encode16()
+      |> String.slice(0..3)
     end
 
     @doc """

@@ -54,7 +54,8 @@ defmodule Leaderboard do
     path = to_charlist(Application.fetch_env!(:o2m, :bt_lboard_dets))
     {:ok, table} = :dets.open_file(path, type: :set)
 
-    Enum.filter(scores, fn {_uid, val} -> val != 0 end)
+    scores
+    |> Enum.filter(fn {_uid, val} -> val != 0 end)
     |> Enum.map(fn {id, points} ->
       old =
         case :dets.lookup(table, id) do
@@ -74,6 +75,7 @@ defmodule Leaderboard do
     scores = :dets.match_object(table, {:"$1", :"$2"})
     sorted = Enum.sort(scores, fn {_id1, v1}, {_id2, v2} -> v1 > v2 end)
     :dets.close(table)
-    sorted |> Enum.take(@top)
+
+    Enum.take(sorted, @top)
   end
 end

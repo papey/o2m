@@ -65,7 +65,9 @@ defmodule BlindTest do
       # use provided args and fallback to filename as default
       playlist_name = if args == [], do: file.filename, else: Enum.join(args, " ")
 
-      party_players = Party.list_players() |> MapSet.new()
+      party_players =
+        Party.list_players()
+        |> MapSet.new()
 
       {:ok, _} =
         Game.start(
@@ -158,67 +160,72 @@ defmodule BlindTest do
   def parse_csv(content) do
     Logger.info("Parsing CSV", data: content)
 
-    String.replace(content, "\r", "")
+    content
+    |> String.replace("\r", "")
     |> String.replace(";", ",")
     |> String.split("\n")
     |> Enum.with_index()
-    |> Enum.reduce_while({:ok, {%Config{}, []}}, fn {l, i}, {:ok, {conf, acc}} ->
-      # skips comments and emtpy lines
-      if !String.starts_with?(l, "#") and l != "" do
-        case String.replace(l, "\"", "") |> String.split(",") do
-          ["!customize" | args] ->
-            case Enum.reduce_while(args, {:ok, %Config{}}, fn kv, {:ok, config} ->
-                   case parse_custom_kv(kv) do
-                     {:ok, {k, v}} ->
-                       {:cont, {:ok, Map.put(config, k, v)}}
+    |> Enum.reduce_while(
+      {:ok, {%Config{}, []}},
+      fn {l, i}, {:ok, {conf, acc}} ->
+        # skips comments and emtpy lines
+        if !String.starts_with?(l, "#") and l != "" do
+          case String.replace(l, "\"", "") |> String.split(",") do
+            ["!customize" | args] ->
+              case Enum.reduce_while(args, {:ok, %Config{}}, fn kv, {:ok, config} ->
+                     case parse_custom_kv(kv) do
+                       {:ok, {k, v}} ->
+                         {:cont, {:ok, Map.put(config, k, v)}}
 
-                     err ->
-                       {:halt, err}
-                   end
-                 end) do
-              {:ok, config} ->
-                {:cont, {:ok, {config, acc}}}
+                       err ->
+                         {:halt, err}
+                     end
+                   end) do
+                {:ok, config} ->
+                  {:cont, {:ok, {config, acc}}}
 
-              err ->
-                {:halt, err}
-            end
+                err ->
+                  {:halt, err}
+              end
 
-          [url, f1s, f2s] ->
-            uri = URI.parse(url)
+            [url, f1s, f2s] ->
+              uri = URI.parse(url)
 
-            cond do
-              !String.valid?(l) ->
-                {:halt,
-                 {:error,
-                  "Line #{i + 1} contains an invalid character, ensure it contains only UTF-8 characters"}}
+              cond do
+                !String.valid?(l) ->
+                  {:halt,
+                   {:error,
+                    "Line #{i + 1} contains an invalid character, ensure it contains only UTF-8 characters"}}
 
-              length(acc) > @playlist_size_limit ->
-                {:halt, {:error, "Playlist size limit reached #{@playlist_size_limit}"}}
+                length(acc) > @playlist_size_limit ->
+                  {:halt, {:error, "Playlist size limit reached #{@playlist_size_limit}"}}
 
-              String.contains?(uri.host, "youtu.be") || String.contains?(uri.host, "youtube") ->
-                {:cont,
-                 {:ok,
-                  {conf,
-                   acc ++
-                     [
-                       %GuessEntry{
-                         url: url,
-                         f1s: Enum.map(String.split(f1s, "|"), &BlindTest.sanitize_input/1),
-                         f2s: Enum.map(String.split(f2s, "|"), &BlindTest.sanitize_input/1)
-                       }
-                     ]}}}
+                String.contains?(uri.host, "youtu.be") || String.contains?(uri.host, "youtube") ->
+                  {:cont,
+                   {:ok,
+                    {conf,
+                     acc ++
+                       [
+                         %GuessEntry{
+                           url: url,
+                           f1s: Enum.map(String.split(f1s, "|"), &BlindTest.sanitize_input/1),
+                           f2s: Enum.map(String.split(f2s, "|"), &BlindTest.sanitize_input/1)
+                         }
+                       ]}}}
 
-              true ->
-                {:halt, {:error, "URL #{url} is not a valid youtube url (line #{i + 1}: `#{l}`)"}}
-            end
+                true ->
+                  {:halt,
+                   {:error, "URL #{url} is not a valid youtube url (line #{i + 1}: `#{l}`)"}}
+              end
 
-          _ ->
-            {:halt, {:error, "Can't parse line #{i + 1}: `#{l}`"}}
+            _ ->
+              {:halt, {:error, "Can't parse line #{i + 1}: `#{l}`"}}
+          end
+        else
+          {:cont, {:ok, {conf, acc}}}
         end
-      else
-        {:cont, {:ok, {conf, acc}}}
       end
-    end)
+    )
   end
 
   @doc """
@@ -231,7 +238,10 @@ defmodule BlindTest do
       "Spiritbox Rules Of Nines"
   """
   def titleize(input) do
-    String.split(input, " ") |> Enum.map(&String.capitalize/1) |> Enum.join(" ")
+    input
+    |> String.split(" ")
+    |> Enum.map(&String.capitalize/1)
+    |> Enum.join(" ")
   end
 
   @doc """
@@ -244,7 +254,8 @@ defmodule BlindTest do
       "abc"
   """
   def sanitize_input(input) do
-    String.normalize(input, :nfd)
+    input
+    |> String.normalize(:nfd)
     |> String.trim()
     |> String.replace(~r/[^a-zA-Z0-9 -]/, "")
     |> String.replace(~r/\s+/, " ")
@@ -414,7 +425,10 @@ defmodule BlindTest do
     Nostrum.Voice.leave_channel(guild_id)
     # leave the channel
     # kill game process and downloader
-    if Process.whereis(Game) != nil, do: Process.whereis(Game) |> Process.exit(:kill)
+    if Process.whereis(Game) != nil,
+      do:
+        Process.whereis(Game)
+        |> Process.exit(:kill)
   end
 
   @doc """

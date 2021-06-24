@@ -9,10 +9,13 @@ defmodule Cache do
   Returns a file binary containing file data
   """
   def path(uuid) do
-    cache = Application.fetch_env!(:o2m, :bt_cache) |> String.trim_trailing("/")
+    cache =
+      Application.fetch_env!(:o2m, :bt_cache)
+      |> String.trim_trailing("/")
 
     file =
-      File.ls!(cache)
+      cache
+      |> File.ls!()
       |> Enum.find(&String.contains?(uuid, Path.basename(&1, Path.extname(&1))))
 
     case file do
@@ -27,7 +30,9 @@ defmodule Cache do
   Removes all files in cache directory
   """
   def clean() do
-    cache = Application.fetch_env!(:o2m, :bt_cache) |> String.trim_trailing("/")
+    cache =
+      Application.fetch_env!(:o2m, :bt_cache)
+      |> String.trim_trailing("/")
 
     files = File.ls!(cache)
 
