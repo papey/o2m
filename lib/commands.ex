@@ -906,7 +906,7 @@ Using prefix `#{prefix}` :
       case Discord.is_member(msg.author, adm, guild_id) do
         :member ->
           Party.reset()
-          "Party data cleared sucessfully 🙌"
+          "Party data cleared successfully 🙌"
 
         :not_member ->
           "#{mention(msg.author.id)} do not have permission to reset party data"
