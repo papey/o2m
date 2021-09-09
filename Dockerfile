@@ -47,7 +47,9 @@ RUN mix release
 FROM elixir:1.11 AS runtime
 
 # Install openssl
-RUN apt-get update && apt-get install -y openssl \
+RUN apt-get update -y \
+    && apt-get upgrade -y \
+    && apt-get install -y openssl \
     libtinfo-dev \
     ffmpeg \
     python3 \
