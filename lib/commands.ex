@@ -755,17 +755,22 @@ Using prefix `#{prefix}` :
     __Administration commands__ (requires privileges)
 
     - **init**: init a new blind test, message should be a private message to the bot with a `.csv` file attached to it (`csv format: youtube.com/link,artist,title`)
-    - **start**: starts the blind test if ready, this message should be send in the dedicated blind test text channel
-    - **destroy**: destroy the running blind test, this message should be send in the dedicated blind test text channel
+    - **start**: starts the blind test if ready
+    - **destroy**: destroy the running blind test
 
     __Players commands__ (only in dedicated bind test text channel)
 
-    - **join**: join a blind test (available only when in transition between two songs or before the blind test start)
-    - **leave**: leave current blind test (available only when in transition between two songs or before the blind test start)
+    - **join**: join a blind test
+    - **leave**: leave current blind test
     - **players**: list all players for this session
     - **pass**: when guessing a song, ask for skipping current guess
     - **ranking**: list current ranking for this session
     - **status**: fetch blind test status
+
+    __Events commands__
+    - **events list**: list blind test events
+    - **events create date@time name**: date format YYYY-MM-DD@hh:mm eg 2022-01-29@21:00
+    - **events start id**: get the ID from the `list` command
 
     __Party commands__
     - **party join**: join this party
@@ -1006,6 +1011,88 @@ Using prefix `#{prefix}` :
       "**#{Enum.join(input, " ")}** is not a party subcommand 🙅"
     end
 
+    def events(msg, ["add", date | args]) do
+      adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
+      guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
+
+      with :member <- Discord.is_member(msg.author, adm, guild_id),
+           {:ok, date} <- Timex.parse(date, "{YYYY}-{0M}-{D}@{h24}:{m}"),
+           with_tz <- Timex.to_datetime(date, "Europe/Paris") do
+        options = %{
+          channel_id: O2M.Application.from_env_to_int(:o2m, :bt_vocal),
+          scheduled_start_time: with_tz,
+          privacy_level: 2,
+          name: Enum.join(args, " "),
+          description: "🎸🤘🎼🎵",
+          entity_type: 2
+        }
+
+        Nostrum.Api.create_guild_scheduled_event(guild_id, options)
+
+        "Event created ! 📅"
+      else
+        :not_member ->
+          "You do not have required permissions add an event"
+
+        {:error, reason} ->
+          Logger.error("Error when adding event", reason: reason)
+          "Error when adding an event"
+      end
+    end
+
+    def events(_msg, ["add" | _]) do
+      "Missing instructions for add subcommand"
+    end
+
+    def events(_msg, ["list" | _]) do
+      guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
+
+      case Nostrum.Api.get_guild_scheduled_events(guild_id) do
+        {:ok, events} ->
+          case Enum.filter(events, fn event -> event.description == "🎸🤘🎼🎵" end) do
+            [] ->
+              "No blind test event found"
+
+            events ->
+              Enum.reduce(events, "_Scheduled Blind Tests (#{length(events)}):_\n\n", fn event,
+                                                                                         acc ->
+                "#{acc}\t- **#{event.name}** @ _#{Timex.format!(event.scheduled_start_time, "{YYYY}-{0M}-{D}")}_ | ID : #{event.id}\n"
+              end)
+          end
+
+        {:error, reason} ->
+          Logger.error("Error when listing events", reason: reason)
+          "Error when listing events"
+      end
+    end
+
+    def events(msg, ["start", id | _]) do
+      adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
+      guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
+
+      with :member <- Discord.is_member(msg.author, adm, guild_id),
+           {:ok, event} <- Nostrum.Api.get_guild_scheduled_event(guild_id, id),
+           {:ok, players} <- Nostrum.Api.get_guild_scheduled_event_users(guild_id, event.id) do
+        Enum.map(players, fn p -> p.user.id end) |> Party.add_players()
+        "Lets go ! Have fun 🎸🤘🎼🎵"
+      else
+        :not_member ->
+          "You do not have required permissions start an event"
+
+        {:error, reason} ->
+          Logger.error("Error when starting event", reason: reason)
+          "Error when starting event"
+      end
+    end
+
+    def events(_msg, ["start"]) do
+      "Missing instructions for add subcommand"
+    end
+
+    def events(_msg, []) do
+      "Missing instruction for events subcommand"
+    end
+
     def bam() do
       [
         "https://youtu.be/iRbnY8EK4Ew",
@@ -1072,6 +1159,9 @@ Using prefix `#{prefix}` :
 
         "party" ->
           party(msg, args)
+
+        "events" ->
+          events(msg, args)
 
         _ ->
           "Sorry but subcommand **#{sub}** of command **bt** is not supported"
