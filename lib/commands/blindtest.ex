@@ -717,7 +717,11 @@ defmodule O2M.Commands.Bt do
     "**#{Enum.join(input, " ")}** is not a party subcommand 🙅"
   end
 
-  def events(msg, ["add", date | args]) do
+  def events(msg, ["create", date | []]) do
+    "Missing event name for create subcommand"
+  end
+
+  def events(msg, ["create", date | args]) do
     adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
     guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
@@ -746,7 +750,7 @@ defmodule O2M.Commands.Bt do
     end
   end
 
-  def events(_msg, ["add" | _]) do
+  def events(_msg, ["create" | _]) do
     "Missing instructions for add subcommand"
   end
 
