@@ -119,7 +119,7 @@ defmodule Game do
   end
 
   def handle_event({:call, from}, :start_game, state, _data)
-      when state == :guessing or state == :transition or state == :finished do
+      when state in [:guessing, :transition, :finished] do
     {:keep_state_and_data, [{:reply, from, {:error, :running}}]}
   end
 

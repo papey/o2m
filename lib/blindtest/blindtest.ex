@@ -425,10 +425,10 @@ defmodule BlindTest do
     Nostrum.Voice.leave_channel(guild_id)
     # leave the channel
     # kill game process and downloader
-    if Process.whereis(Game) != nil,
-      do:
-        Process.whereis(Game)
-        |> Process.exit(:kill)
+    case process() do
+      {:one, pid} -> Process.exit(pid, :kill)
+      _ -> nil
+    end
   end
 
   @doc """

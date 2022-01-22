@@ -4,7 +4,7 @@ defmodule O2M.MixProject do
   def project do
     [
       app: :o2m,
-      version: "0.10.7",
+      version: "0.10.8",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -29,11 +29,10 @@ defmodule O2M.MixProject do
     [
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
       {:nostrum, "~> 0.4"},
-      {:httpoison, "~> 1.6"},
       {:elixir_feed_parser, "~> 0.0.1"},
-      {:timex, "~> 3.5"},
-      {:jason, "~> 1.1"},
-      {:tesla, "~> 1.3.0"},
+      {:timex, "~> 3.7"},
+      {:jason, "~> 1.3"},
+      {:tesla, "~> 1.4"},
       {:gen_state_machine, "~> 3.0.0"}
     ]
   end
