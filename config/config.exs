@@ -1,5 +1,5 @@
 # Ensure Mix.config is loaded
-use Mix.Config
+import Config
 
 # Nostrum configuration
 config :nostrum,
