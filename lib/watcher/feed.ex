@@ -11,12 +11,10 @@ defmodule Feed do
   Returns a tuple containing date, title and url of last episode
   """
   def get_last_episode(url) do
-    HTTPoison.start()
-
     # Get rss feed
-    case HTTPoison.get(url) do
+    case Tesla.get(url) do
       {:ok, resp} ->
-        case resp.status_code do
+        case resp.status do
           200 ->
             # Parse feed
             xml = ElixirFeedParser.parse(resp.body)
