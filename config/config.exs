@@ -37,7 +37,9 @@ config :o2m,
   # cache diredctory for songs
   bt_cache: System.get_env("O2M_BT_CACHE", "/tmp/o2m/cache"),
   # blind test leaderbord dets
-  bt_lboard_dets: System.get_env("O2M_BT_LBOARD_DETS", "/srv/o2m/dets/leaderboard.dets")
+  bt_lboard_dets: System.get_env("O2M_BT_LBOARD_DETS", "/srv/o2m/dets/leaderboard.dets"),
+  # default timezone for events
+  bt_events_tz: System.get_env("O2M_BT_EVENTS_TZ", "Europe/Paris")
 
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",

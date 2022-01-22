@@ -89,7 +89,7 @@ Using a set of emojis, adding a reaction to messages trigger bot commands.
 If you run this bot in blind test mode you need to activate all Discord [gateway intents](https://discord.com/developers/docs/topics/gateway#gateway-intents).
 
 On the scopes side, the bot needs at least the `Send Messages` (text permissions) scope. But if you enabled the blind tests feature
-you need to add `Add Reactions` (text permissions), `Connect` (voice permissions) and `Speak` (voice permissions).
+you need to add `Add Reactions` (text permissions), `Connect` (voice permissions), `Speak` (voice permissions) `Manage Events` (general permissions).
 
 ## Running the tests
 

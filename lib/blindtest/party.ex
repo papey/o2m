@@ -31,6 +31,10 @@ defmodule Party do
     end)
   end
 
+  def add_players(ids) do
+    for id <- ids, do: add_player(id)
+  end
+
   def add_player(pid) do
     if BlindTest.process() != :none do
       Game.add_player(pid)
