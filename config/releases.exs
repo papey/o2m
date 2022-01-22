@@ -58,3 +58,5 @@ config :logger, :console,
 
 config :porcelain,
   driver: Porcelain.Driver.Basic
+
+config :tesla, adapter: Tesla.Adapter.Hackney
