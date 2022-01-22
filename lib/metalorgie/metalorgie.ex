@@ -25,20 +25,17 @@ defmodule Metalorgie do
   Returns ok + `json object` or error + message
   """
   def get_band(band) do
-    HTTPoison.start()
-
     # Concat string, but before apply a downcase operation on all list members
     search =
       band
       |> Enum.map(fn e -> String.downcase(e) end)
       |> Enum.join(" ")
 
-    # Forge url by encoding params
-    filter = "[{\"property\":\"name\",\"value\":\"#{search}\"}]"
-
     # HTTP get call
     resp =
-      HTTPoison.get!(Metalorgie.get_config_url() <> "/api/band.php", [], params: %{filter: filter})
+      Tesla.get!(Metalorgie.get_config_url() <> "/api/band.php",
+        query: [property: "name", value: search]
+      )
 
     # Decode json
     {:ok, json} = Jason.decode(resp.body)
