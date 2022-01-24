@@ -799,7 +799,7 @@ defmodule O2M.Commands.Bt do
     "Missing instructions for add subcommand"
   end
 
-  def events(_msg, []) do
+  def events(_msg, _) do
     "Missing instruction for events subcommand"
   end
 
