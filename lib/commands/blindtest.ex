@@ -717,7 +717,7 @@ defmodule O2M.Commands.Bt do
     "**#{Enum.join(input, " ")}** is not a party subcommand 🙅"
   end
 
-  def events(msg, ["create", date | []]) do
+  def events(_, ["create", _ | []]) do
     "Missing event name for create subcommand"
   end
 
