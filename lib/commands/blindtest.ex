@@ -766,7 +766,7 @@ defmodule O2M.Commands.Bt do
           events ->
             Enum.reduce(events, "_Scheduled Blind Tests (#{length(events)}):_\n\n", fn event,
                                                                                        acc ->
-              "#{acc}\t- **#{event.name}** @ _#{Timex.format!(event.scheduled_start_time, "{YYYY}-{0M}-{D}")}_ | ID : #{event.id}\n"
+              "#{acc}\t- **#{event.name}** | _#{Timex.format!(event.scheduled_start_time, "{YYYY}-{0M}-{D}")}_ | ID : #{event.id}\n"
             end)
         end
 
