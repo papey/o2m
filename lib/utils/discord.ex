@@ -11,7 +11,7 @@ defmodule Discord do
   Returns an atom indicating channel type
   """
   def channel_type(channel_id) do
-    with {:ok, chan} <- Nostrum.Cache.ChannelCache.get(channel_id) do
+    with {:ok, chan} <- Nostrum.Api.get_channel(channel_id) do
       if chan.type == 1 do
         :private
       else
