@@ -426,9 +426,14 @@ defmodule O2M.Commands.Bt do
 
     with {:one, _} <- BlindTest.process(),
          :member <- is_member(msg.author, adm, guild_id),
-         {:ok, _} <- BlindTest.check_channel_id(msg.channel_id) do
-      BlindTest.destroy()
+         {:ok, _} <- BlindTest.check_channel_id(msg.channel_id),
+         downloarder_pid <- Process.whereis(Downloader.Worker) do
+      # kill downloader is any
+      if downloarder_pid, do: Process.exit(downloarder_pid, :kill)
+      # clean cache
       Cache.clean()
+      # kill running BT process
+      BlindTest.destroy(guild_id)
 
       Nostrum.Api.create_message(
         msg.channel_id,

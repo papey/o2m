@@ -419,12 +419,10 @@ defmodule BlindTest do
   @doc """
   Destroy the current blind test process
   """
-  def destroy() do
-    guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
-
+  def destroy(guild_id) do
     Nostrum.Voice.leave_channel(guild_id)
+
     # leave the channel
-    # kill game process and downloader
     case process() do
       {:one, pid} -> Process.exit(pid, :kill)
       _ -> nil
