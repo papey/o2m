@@ -26,7 +26,7 @@ defmodule O2M do
       "👀" ->
         with {:ok, origin} <-
                Nostrum.Api.get_channel_message(reaction.channel_id, reaction.message_id),
-             :private <- Discord.channel_type(origin.channel_id),
+             {:ok, _chan} <- Discord.is_chan_private(origin.channel_id),
              true <- origin.author.bot,
              {:ok} <- Nostrum.Api.delete_message(reaction.channel_id, reaction.message_id) do
         else
