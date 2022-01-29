@@ -6,28 +6,35 @@ defmodule Discord do
   use Nostrum.Consumer
 
   @doc """
-  Check if a channel is public or private
+  Check if a channel is private
 
-  Returns an atom indicating channel type
+  Returns an :ok tuple
   """
-  def channel_type(channel_id) do
+  def is_chan_private(channel_id) do
     with {:ok, chan} <- Nostrum.Api.get_channel(channel_id) do
-      if chan.type == 1 do
-        :private
-      else
-        :public
-      end
-    else
-      error -> error
+      if chan.type == 1,
+        do: {:ok, chan},
+        else: {:error, "Channel #{channel(chan.id)} is not private"}
     end
   end
 
   @doc """
-  Check if an id ir a member of a role in a guild
+  Check if a channel is public
+
+  Returns an :ok tuple
+  """
+  def is_chan_public(channel_id) do
+    with {:ok, chan} <- Nostrum.Api.get_channel(channel_id) do
+      if chan.type != 1, do: {:ok, chan}, else: {:error, "Channel #{channel(chan.id)} is private"}
+    end
+  end
+
+  @doc """
+  Check if an id is a member of a role in a guild, use to ensure permissions on commands
 
   Returns an atom indicating role membership
   """
-  def is_member(user, rid, gid) do
+  def member_has_persmission(user, rid, gid) do
     with {:ok, guild} <- Nostrum.Cache.GuildCache.get(gid) do
       case Map.get(guild.members, user.id) do
         nil ->
@@ -35,9 +42,9 @@ defmodule Discord do
 
         m ->
           if Enum.member?(m.roles(), rid) do
-            :member
+            {:ok}
           else
-            :not_member
+            {:error, "User #{mention(user.id)} do not have the required permission"}
           end
       end
     else
