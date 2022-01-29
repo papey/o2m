@@ -499,6 +499,15 @@ defmodule Game do
   def handle_event({:call, from}, :get_players, _state, data),
     do: {:keep_state_and_data, [{:reply, from, {:ok, data.players}}]}
 
+  def handle_event({:call, from}, {:contains_player, id}, _state, data) do
+    if MapSet.member?(data.players, id) do
+      {:keep_state_and_data, [{:reply, from, {:ok}}]}
+    else
+      {:keep_state_and_data,
+       [{:reply, from, {:error, "User #{Discord.mention(id)} is not playing in this game"}}]}
+    end
+  end
+
   def handle_event({:call, from}, :get_ranking, state, _data)
       when state == :waiting or state == :ready do
     {:keep_state_and_data, [{:reply, from, {:error, :no_ranking}}]}
@@ -536,6 +545,10 @@ defmodule Game do
 
   def get_players() do
     GenStateMachine.call(__MODULE__, :get_players)
+  end
+
+  def contains_player(id) do
+    GenStateMachine.call(__MODULE__, {:contains_player, id})
   end
 
   def get_author() do
