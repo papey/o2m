@@ -31,7 +31,7 @@ defmodule O2M do
              {:ok} <- Nostrum.Api.delete_message(reaction.channel_id, reaction.message_id) do
         else
           {:error, reason} ->
-            Nostrum.Api.create_message(reaction.channel_id, "Error, #{reason}")
+            Nostrum.Api.create_message(reaction.channel_id, "**Error**: _#{reason}_")
 
           _ ->
             nil
@@ -51,7 +51,7 @@ defmodule O2M do
       case O2M.Commands.extract_cmd_and_args(msg.content, prefix) do
         # if an error occured while parsing
         {:error, reason} ->
-          Api.create_message(msg.channel_id, reason)
+          Api.create_message(msg.channel_id, "**Error**: _#{reason}_")
 
         # if command is mo with args and subcommand
         {:ok, "mo", sub, args} ->

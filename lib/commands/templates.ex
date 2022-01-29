@@ -33,7 +33,7 @@ defmodule O2M.Commands.Tmpl do
   """
   # if not args provided
   def add([]) do
-    "Error, missing template for `add` subcommand"
+    "Missing template for `add` subcommand"
   end
 
   # if args provided
@@ -112,9 +112,8 @@ defmodule O2M.Commands.Tmpl do
         "Template with ID **#{hash}** deleted"
 
       {:error, reason} ->
-        message = "Error deleteing template #{hash}"
-        Logger.error(message, reason: reason)
-        message
+        Logger.error("Error when deleting template", reason: reason)
+        "**Error**: _#{reason}_"
     end
   end
 

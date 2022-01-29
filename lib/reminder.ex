@@ -37,10 +37,7 @@ defmodule Reminder do
       )
     else
       {:error, reason} ->
-        Nostrum.Api.create_message(dm.id, "Error, #{reason}")
-
-      :private ->
-        Nostrum.Api.create_reaction(reaction.channel_id, reaction.message_id, "🖕")
+        Nostrum.Api.create_message(dm.id, "**Error**: _#{reason}_")
     end
   end
 end
