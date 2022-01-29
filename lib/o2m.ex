@@ -109,7 +109,9 @@ defmodule O2M do
             {:one, _pid} ->
               channel_id = O2M.Application.from_env_to_int(:o2m, :bt_chan)
 
-              if channel_id == msg.channel_id && msg.content != "" && BlindTest.guessing?() &&
+              if channel_id == msg.channel_id &&
+                   msg.content != "" &&
+                   BlindTest.guessing?() &&
                    BlindTest.plays?(msg.author.id) do
                 # validate answer
                 case Game.validate(msg.content, msg.author.id) do
@@ -120,8 +122,6 @@ defmodule O2M do
                   :not_guessing ->
                     :ignore
                 end
-              else
-                :ignore
               end
           end
 
