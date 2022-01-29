@@ -29,7 +29,7 @@ defmodule O2M.Commands do
           {:ok, String.replace(cmd, prefix, ""), :none, []}
 
         _ ->
-          {:error, "Error parsing command"}
+          {:error, "Unable to parse command"}
       end
     end
   end

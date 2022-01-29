@@ -35,7 +35,7 @@ defmodule BlindTest do
               error_treshold: 0.2
   end
 
-  def check([], _, _), do: "Error no attachements found in this message"
+  def check([], _, _), do: {:error, "No attachements found in this message"}
 
   def check(attachements) do
     with {:ok, file} <- find_songs_attachement(attachements),
@@ -47,7 +47,7 @@ defmodule BlindTest do
     end
   end
 
-  def init([], _, _), do: "Error no attachements found in this message"
+  def init([], _, _), do: {:error, "No attachements found in this message"}
 
   def init(attachements, author, from_channel, args) do
     guild = O2M.Application.from_env_to_int(:o2m, :guild)
@@ -75,9 +75,9 @@ defmodule BlindTest do
           {guess_entries, cache, channel_id, from_channel, config.guess_duration}
         )
 
-      "__Download worker started__ : #{length(guess_entries)} song(s) to download"
+      {:ok, "__Download worker started__ : #{length(guess_entries)} song(s) to download"}
     else
-      {:error, reason} -> "Error #{reason}"
+      error -> error
     end
   end
 
@@ -361,6 +361,30 @@ defmodule BlindTest do
     end
   end
 
+  @doc """
+  Ensure there is no running game
+
+  Returns an :ok tuple
+  """
+  def ensure_not_running() do
+    case Process.whereis(Game) do
+      nil -> {:ok}
+      _pid -> {:error, "There is already a blind test running in this guild"}
+    end
+  end
+
+  @doc """
+  Ensure there is a running game
+
+  Return an :ok tuple
+  """
+  def ensure_running() do
+    case Process.whereis(Game) do
+      nil -> {:error, "There is no blind test running in this guild"}
+      _pid -> {:ok}
+    end
+  end
+
   def status() do
     if Process.whereis(Game) != nil do
       cond do
@@ -381,9 +405,14 @@ defmodule BlindTest do
     end
   end
 
-  def check_channel_id(channel_id) do
+  def ensure_channel(channel_id) do
     bt_chan_id = O2M.Application.from_env_to_int(:o2m, :bt_chan)
-    if bt_chan_id == channel_id, do: {:ok, bt_chan_id}, else: {:error, bt_chan_id}
+
+    if bt_chan_id == channel_id,
+      do: {:ok},
+      else:
+        {:error,
+         "You can only interact with blind test in channel #{Discord.channel(bt_chan_id)}"}
   end
 
   @doc """

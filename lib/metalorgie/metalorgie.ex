@@ -26,22 +26,25 @@ defmodule Metalorgie do
   """
   def get_band(band) do
     # Concat string, but before apply a downcase operation on all list members
-    search =
+    terms =
       band
       |> Enum.map(fn e -> String.downcase(e) end)
-      |> Enum.join(" ")
+
+    match = Enum.join(terms, " ")
 
     # HTTP get call
     resp =
-      Tesla.get!(Metalorgie.get_config_url() <> "/api/band.php",
-        query: [property: "name", value: search]
+      Tesla.get!(
+        Metalorgie.get_config_url() <>
+          "/api/band.php" <>
+          "?filter=[%7B\"property\":\"name\",\"value\":\"#{Enum.join(terms, "%20")}\"%7D]"
       )
 
     # Decode json
     {:ok, json} = Jason.decode(resp.body)
 
     # Filter on band name, hard search
-    filter = Enum.filter(json, fn e -> String.downcase(e["name"]) == search end)
+    filter = Enum.filter(json, fn e -> String.downcase(e["name"]) == match end)
 
     # If a band is found
     case filter do
@@ -52,12 +55,12 @@ defmodule Metalorgie do
         # if not
         # Filter on band name, soft search
         filter =
-          Enum.filter(json, fn e -> String.contains?(String.downcase(e["name"]), search) end)
+          Enum.filter(json, fn e -> String.contains?(String.downcase(e["name"]), terms) end)
 
         # If a band is found
         case filter do
           [band | _] -> {:ok, band}
-          _ -> {:error, "No band with name #{search} found"}
+          _ -> {:error, "No band with name **#{Enum.join(band, " ")}** found"}
         end
     end
   end
@@ -81,8 +84,11 @@ defmodule Metalorgie do
           end)
 
         case filtered do
-          [album | _] -> {:ok, album}
-          _ -> {:error, "No album named #{album} found for artist #{Enum.join(artist, " ")}"}
+          [album | _] ->
+            {:ok, album}
+
+          _ ->
+            {:error, "No album named **#{album}** found for artist **#{Enum.join(artist, " ")}**"}
         end
 
       {:error, message} ->
@@ -114,11 +120,12 @@ defmodule Metalorgie do
       "https://www.metalorgie.com/groupe/korn/31745_the-nothing"
   """
   def forge_album_url(band, album, id) do
-    slug =
-      album
-      |> String.replace(":", "")
-      |> String.replace(" ", "-")
+    "#{Metalorgie.get_config_url()}/groupe/#{slug_term(band)}/#{id}_#{slug_term(album)}"
+  end
 
-    "#{Metalorgie.get_config_url()}/groupe/#{band}/#{id}_#{slug}"
+  defp slug_term(term) do
+    term
+    |> String.replace(":", "")
+    |> String.replace(" ", "-")
   end
 end

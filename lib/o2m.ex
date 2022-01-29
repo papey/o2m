@@ -26,12 +26,12 @@ defmodule O2M do
       "👀" ->
         with {:ok, origin} <-
                Nostrum.Api.get_channel_message(reaction.channel_id, reaction.message_id),
-             :private <- Discord.channel_type(origin.channel_id),
+             {:ok, _chan} <- Discord.is_chan_private(origin.channel_id),
              true <- origin.author.bot,
              {:ok} <- Nostrum.Api.delete_message(reaction.channel_id, reaction.message_id) do
         else
           {:error, reason} ->
-            Nostrum.Api.create_message(reaction.channel_id, "Error, #{reason}")
+            Nostrum.Api.create_message(reaction.channel_id, "**Error**: _#{reason}_")
 
           _ ->
             nil
@@ -51,18 +51,48 @@ defmodule O2M do
       case O2M.Commands.extract_cmd_and_args(msg.content, prefix) do
         # if an error occured while parsing
         {:error, reason} ->
-          Api.create_message(msg.channel_id, reason)
+          Api.create_message(msg.channel_id,
+            content: "**Error**: _#{reason}_",
+            message_reference: %{message_id: msg.id}
+          )
 
         # if command is mo with args and subcommand
         {:ok, "mo", sub, args} ->
-          Api.create_message(msg.channel_id, O2M.Commands.Mo.handle(sub, args))
+          reply =
+            case O2M.Commands.Mo.handle(sub, args) do
+              {:ok, reply} ->
+                reply
+
+              {:error, reason} ->
+                "**Error**: _#{reason}_"
+            end
+
+          Api.create_message(msg.channel_id,
+            content: reply,
+            message_reference: %{message_id: msg.id}
+          )
 
         {:ok, "tmpl", sub, args} ->
-          Api.create_message(msg.channel_id, O2M.Commands.Tmpl.handle(sub, args))
+          reply =
+            case O2M.Commands.Tmpl.handle(sub, args) do
+              {:ok, reply} ->
+                reply
+
+              {:error, reason} ->
+                "**Error**: _#{reason}_"
+            end
+
+          Api.create_message(msg.channel_id,
+            content: reply,
+            message_reference: %{message_id: msg.id}
+          )
 
         # if command is help with args and subcommand
         {:ok, "help", _, _} ->
-          Api.create_message(msg.channel_id, O2M.Commands.Help.handle(prefix))
+          Api.create_message(msg.channel_id,
+            content: O2M.Commands.Help.handle(prefix),
+            message_reference: %{message_id: msg.id}
+          )
 
         # if command is blind test
         {:ok, "bt", sub, args} ->
@@ -70,17 +100,27 @@ defmodule O2M do
             # Sometimes, handle does not return a message since it's heavily use reaction emojis
             true ->
               case O2M.Commands.Bt.handle(sub, args, msg) do
-                :no_message ->
+                {:ok, :silent} ->
                   nil
 
-                message ->
-                  Api.create_message(msg.channel_id, message)
+                {:ok, reply} ->
+                  Api.create_message(msg.channel_id,
+                    content: reply,
+                    message_reference: %{message_id: msg.id}
+                  )
+
+                {:error, reason} ->
+                  Api.create_message(msg.channel_id,
+                    content: "**Error**: _#{reason}_",
+                    message_reference: %{message_id: msg.id}
+                  )
               end
 
             false ->
               Api.create_message(
                 msg.channel_id,
-                "Sorry but blind test is **not configured** on this Discord Guild 😢"
+                content: "Sorry but blind test is **not configured** on this Discord Guild 😢",
+                message_reference: %{message_id: msg.id}
               )
           end
 
@@ -90,11 +130,15 @@ defmodule O2M do
             "" ->
               Api.create_message(
                 msg.channel_id,
-                "Sorry but I need at least **a command** to do something"
+                content: "Sorry but I need at least **a command** to do something",
+                message_reference: %{message_id: msg.id}
               )
 
             _ ->
-              Api.create_message(msg.channel_id, "Sorry but **#{cmd}** ? 🤷")
+              Api.create_message(msg.channel_id,
+                content: "Sorry but **#{cmd}** ? 🤷",
+                message_reference: %{message_id: msg.id}
+              )
           end
 
         # if no command, check if it's from a blind-test channel and if channel is in guessing mode
@@ -106,7 +150,9 @@ defmodule O2M do
             {:one, _pid} ->
               channel_id = O2M.Application.from_env_to_int(:o2m, :bt_chan)
 
-              if channel_id == msg.channel_id && msg.content != "" && BlindTest.guessing?() &&
+              if channel_id == msg.channel_id &&
+                   msg.content != "" &&
+                   BlindTest.guessing?() &&
                    BlindTest.plays?(msg.author.id) do
                 # validate answer
                 case Game.validate(msg.content, msg.author.id) do
@@ -117,8 +163,6 @@ defmodule O2M do
                   :not_guessing ->
                     :ignore
                 end
-              else
-                :ignore
               end
           end
 

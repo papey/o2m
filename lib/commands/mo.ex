@@ -20,16 +20,16 @@ defmodule O2M.Commands.Mo do
         help(args)
 
       "teuton" ->
-        "https://www.youtube.com/watch?v=WmlshlqXD54"
+        {:ok, "https://www.youtube.com/watch?v=WmlshlqXD54"}
 
       _ ->
-        "Sorry but subcommand **#{sub}** of command **mo** is not supported"
+        {:error, "Sorry but subcommand **#{sub}** of command **mo** is not supported"}
     end
   end
 
   # If no args provided
   def band([]) do
-    "Missing band name for `band` subcommand"
+    {:error, "Missing band name for `band` subcommand"}
   end
 
   @doc """
@@ -38,10 +38,10 @@ defmodule O2M.Commands.Mo do
   def band(args) do
     case get_band(args) do
       {:ok, band} ->
-        forge_band_url(band["slug"])
+        {:ok, forge_band_url(band["slug"])}
 
-      {:error, msg} ->
-        msg
+      error ->
+        error
     end
   end
 
@@ -62,10 +62,10 @@ defmodule O2M.Commands.Mo do
 
     case get_album(String.split(band, " "), String.split(Enum.at(album, 0), " ")) do
       {:ok, album} ->
-        forge_album_url(band, album["name"], album["id"])
+        {:ok, forge_album_url(band, album["name"], album["id"])}
 
-      {:error, message} ->
-        message
+      error ->
+        error
     end
   end
 
@@ -73,23 +73,28 @@ defmodule O2M.Commands.Mo do
   Handle help command
   """
   def help([]) do
-    "Available **mo** subcommands are :
+    reply = "Available **mo** subcommands are :
     - **album**: to get album info (try _#{Application.fetch_env!(:o2m, :prefix)}mo help album_)
     - **band**: to get page band info (try _#{Application.fetch_env!(:o2m, :prefix)}mo help band_)
     - **help**: to get this help message"
+
+    {:ok, reply}
   end
 
   # If an arg is provided
   def help(args) do
-    case Enum.join(args, " ") do
-      "album" ->
-        "Here is an example of \`album\` subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}mo album korn // follow the leader \`\`\`"
+    reply =
+      case Enum.join(args, " ") do
+        "album" ->
+          "Here is an example of \`album\` subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}mo album korn // follow the leader \`\`\`"
 
-      "band" ->
-        "Here is an example of \`band\` subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}mo band korn\`\`\`"
+        "band" ->
+          "Here is an example of \`band\` subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}mo band korn\`\`\`"
 
-      sub ->
-        "Subcommand #{sub} not available"
-    end
+        sub ->
+          "Subcommand #{sub} not available"
+      end
+
+    {:ok, reply}
   end
 end

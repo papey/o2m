@@ -14,7 +14,7 @@ defmodule MetalorgieTest do
 
   test "get_band for band `nopnop`" do
     {:error, message} = Metalorgie.get_band(["nopnop"])
-    assert message == "No band with name nopnop found"
+    assert message == "No band with name **nopnop** found"
   end
 
   test "get_album for album `follow the leader` by `korn`" do
@@ -25,6 +25,6 @@ defmodule MetalorgieTest do
 
   test "get_album for album `nop` by band `iron maiden`" do
     {:error, message} = Metalorgie.get_album(["iron", "maiden"], ["nop"])
-    assert message == "No album named nop found for artist iron maiden"
+    assert message == "No album named **nop** found for artist **iron maiden**"
   end
 end

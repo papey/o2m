@@ -27,7 +27,7 @@ defmodule Feed do
 
           _ ->
             Logger.error("Received non 200 (ok) HTTP status code, sending :nodata atom",
-              code: resp.status_code
+              code: resp.status
             )
 
             :nodata

@@ -6,7 +6,7 @@ defmodule Reminder do
   def remind(reaction) do
     {:ok, dm} = Nostrum.Api.create_dm(reaction.user_id)
 
-    with :public <- channel_type(reaction.channel_id),
+    with {:ok, _chan} <- is_chan_public(reaction.channel_id),
          {:ok, origin} <-
            Nostrum.Api.get_channel_message(reaction.channel_id, reaction.message_id) do
       content =
@@ -37,10 +37,7 @@ defmodule Reminder do
       )
     else
       {:error, reason} ->
-        Nostrum.Api.create_message(dm.id, "Error, #{reason}")
-
-      :private ->
-        Nostrum.Api.create_reaction(reaction.channel_id, reaction.message_id, "🖕")
+        Nostrum.Api.create_message(dm.id, "**Error**: _#{reason}_")
     end
   end
 end
