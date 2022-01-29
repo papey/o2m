@@ -466,7 +466,7 @@ defmodule O2M.Commands.Bt do
   end
 
   def rules() do
-    reply = "_Blind test rules_
+    reply = "**Blind test rules**
 
       __Reaction emojis__
 
@@ -490,9 +490,9 @@ defmodule O2M.Commands.Bt do
 
       Default scoring is :
 
-      \t - both fields in the same message : 8 points
-      \t - first field  found : 2 points
-      \t - second field found : 3 points
+      \t - **both fields** in the same message : **8 points**
+      \t - **first field** found : **2 points**
+      \t - **second field** found : **3 points**
 
       "
 
