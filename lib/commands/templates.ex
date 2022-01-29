@@ -24,7 +24,7 @@ defmodule O2M.Commands.Tmpl do
         help(args)
 
       _ ->
-        "Sorry but subcommand **#{sub}** of command **tmpl** is not supported"
+        {:error, "Subcommand **#{sub}** of command **tmpl** is not supported"}
     end
   end
 
@@ -33,7 +33,7 @@ defmodule O2M.Commands.Tmpl do
   """
   # if not args provided
   def add([]) do
-    "Missing template for `add` subcommand"
+    {:error, "Missing template for `add` subcommand"}
   end
 
   # if args provided
@@ -52,24 +52,28 @@ defmodule O2M.Commands.Tmpl do
     case Announcements.valid?(keys, template) do
       true ->
         # if ok, use template
-        case Announcements.Storage.put(template) do
-          true ->
-            "Template `#{template}` added succesfully"
+        reply =
+          case Announcements.Storage.put(template) do
+            true ->
+              "Template `#{template}` added succesfully"
 
-          false ->
-            "Template `#{template}` already exists"
+            false ->
+              "Template `#{template}` already exists"
 
-          {:warning, message} ->
-            message
+            {:warning, message} ->
+              message
 
-          {:error, reason} ->
-            Logger.error("Error while saving template to DETS file", reason: reason)
-            reason
-        end
+            {:error, reason} ->
+              Logger.error("Error while saving template to DETS file", reason: reason)
+              reason
+          end
+
+        {:ok, reply}
 
       false ->
         # if not, fallback to a default one
-        "This template is invalid, please ensure all required keys are set (__mandatory keys : #{m2s()}__) and respect length limit (**#{Announcements.limit()} characters)**"
+        {:error,
+         "This template is invalid, please ensure all required keys are set (__mandatory keys : #{m2s()}__) and respect length limit (**#{Announcements.limit()} characters)**"}
     end
   end
 
@@ -77,15 +81,18 @@ defmodule O2M.Commands.Tmpl do
   List is used to list templates
   """
   def list(_) do
-    case Announcements.Storage.get_all() do
-      [] ->
-        "There is no registered templates fallback to default one"
+    reply =
+      case Announcements.Storage.get_all() do
+        [] ->
+          "There is no registered templates fallback to default one"
 
-      templates ->
-        Enum.reduce(templates, "", fn {k, v}, acc ->
-          "#{acc}\n_id_ : **#{k}** - _template_ : `#{v}`"
-        end)
-    end
+        templates ->
+          Enum.reduce(templates, "", fn {k, v}, acc ->
+            "#{acc}\n_id_ : **#{k}** - _template_ : `#{v}`"
+          end)
+      end
+
+    {:ok, reply}
   end
 
   @doc """
@@ -93,7 +100,7 @@ defmodule O2M.Commands.Tmpl do
   """
   # if no args provided
   def delete([]) do
-    "Missing identificator for `delete` subcommand"
+    {:error, "Missing identificator for `delete` subcommand"}
   end
 
   # If args provided
@@ -109,35 +116,39 @@ defmodule O2M.Commands.Tmpl do
 
     case Announcements.Storage.delete(hash) do
       :ok ->
-        "Template with ID **#{hash}** deleted"
+        {:ok, "Template with ID **#{hash}** deleted"}
 
       {:error, reason} ->
         Logger.error("Error when deleting template", reason: reason)
-        "**Error**: _#{reason}_"
+        {:error, reason}
     end
   end
 
   def help([]) do
-    "Available **tmpl** subcommands are :
+    reply = "Available **tmpl** subcommands are :
     - **add**: to add an announcement template (try _#{Application.fetch_env!(:o2m, :prefix)}tmpl help add_)
     - **list**: to list templates (try _#{Application.fetch_env!(:o2m, :prefix)}tmpl help list_)
     - **delete**: to delete a specific template (try _#{Application.fetch_env!(:o2m, :prefix)}tmpl help delete_)
     - **help**: to get this help message"
+    {:ok, reply}
   end
 
   def help(args) do
-    case Enum.join(args, " ") do
-      "add" ->
-        "Here is an example of \`add\` subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}tmpl add #[show] just publish a new episode #[title], check it at #[url]\`\`\`"
+    reply =
+      case Enum.join(args, " ") do
+        "add" ->
+          "Here is an example of \`add\` subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}tmpl add #[show] just publish a new episode #[title], check it at #[url]\`\`\`"
 
-      "list" ->
-        "Here is an example of \`list\` subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}tmpl list\`\`\`"
+        "list" ->
+          "Here is an example of \`list\` subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}tmpl list\`\`\`"
 
-      "delete" ->
-        "Here is an example of \`delete\` subcommand, using ID from list subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}tmpl delete acfe\`\`\`"
+        "delete" ->
+          "Here is an example of \`delete\` subcommand, using ID from list subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}tmpl delete acfe\`\`\`"
 
-      sub ->
-        "Help for subcommand #{sub} not available"
-    end
+        sub ->
+          "Help for subcommand #{sub} not available"
+      end
+
+    {:ok, reply}
   end
 end
