@@ -70,11 +70,14 @@ defmodule O2M do
             # Sometimes, handle does not return a message since it's heavily use reaction emojis
             true ->
               case O2M.Commands.Bt.handle(sub, args, msg) do
-                :no_message ->
+                {:ok, :silent} ->
                   nil
 
-                message ->
-                  Api.create_message(msg.channel_id, message)
+                {:ok, reply} ->
+                  Api.create_message(msg.channel_id, reply)
+
+                {:error, reason} ->
+                  Api.create_message(msg.channel_id, "**Error**: _#{reason}_")
               end
 
             false ->
