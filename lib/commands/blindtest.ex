@@ -454,7 +454,7 @@ defmodule O2M.Commands.Bt do
     - **ranking**: list current ranking for this session
     - **status**: fetch blind test status
 
-    __Events commands__
+    __Events commands__ (requires privileges)
     - **events list**: list blind test events
     - **events create date@time name**: date format YYYY-MM-DD@hh:mm eg 2022-01-29@21:00
     - **events start id**: get the ID from the `list` command
@@ -466,14 +466,14 @@ defmodule O2M.Commands.Bt do
     - **party overview**: get an overview of the current party
     - **party list**: list all the games for this party
     - **party get <ID>**: get data about a specific game
-    - **party reset**: reset party data (admin)
+    - **party reset**: reset party data [admin]
 
     __Leaderboard commands__
 
-    - **lboard top**: print top 15 leaderboard (admin)
-    - **lboard set @user +<value>**: add value to @user score
-    - **lboard set @user -<value>**: substract value to @user score
-    - **lboard set @user =<value>**: set @user score to value
+    - **lboard top**: print top 15 leaderboard
+    - **lboard set @user +<value>**: add value to @user score [admin]
+    - **lboard set @user -<value>**: substract value to @user score [admin]
+    - **lboard set @user =<value>**: set @user score to value [admin]
     - **lboard get**: get asking user score
 
     __Help commands__
