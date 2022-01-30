@@ -589,7 +589,7 @@ defmodule Game do
   Returns an atom describing the answer status
 
   ## Examples
-      iex> BlindTest.verify_answer(%BlindTest.GuessEntry{f1s: ["Spiritbox"], f2s: ["Holly Roller"]}, "spiritbox holl roller")
+      iex> Game.verify_answer(%BlindTest.GuessEntry{f1s: ["Spiritbox"], f2s: ["Holly Roller"]}, "spiritbox holl roller")
       :both
   """
   def verify_answer(expected, proposal, threshold \\ 0.2) do
