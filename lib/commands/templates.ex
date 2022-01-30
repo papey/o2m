@@ -9,7 +9,7 @@ defmodule O2M.Commands.Tmpl do
   @doc """
   Handle Tmpl commands and route to sub commands
   """
-  def handle(sub, args) do
+  def handle(sub, args, _) do
     case sub do
       "add" ->
         add(args)

@@ -86,12 +86,10 @@ defmodule Downloader do
         )
       end
 
-      case BlindTest.process() do
-        {:one, _} ->
-          Game.set_ready()
-
-        :none ->
-          Api.create_message(channel_id, "Error when communicating with blind test process")
+      if BlindTest.exists?() do
+        Game.set_ready()
+      else
+        Api.create_message(channel_id, "Error when communicating with blind test process")
       end
 
       Logger.info("Downloader worker exits")

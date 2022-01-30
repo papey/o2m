@@ -361,6 +361,13 @@ defmodule BlindTest do
     end
   end
 
+  def exists?() do
+    case process() do
+      :none -> false
+      _ -> true
+    end
+  end
+
   @doc """
   Ensure there is no running game
 
@@ -433,6 +440,32 @@ defmodule BlindTest do
   def started?() do
     {:ok, status} = GenStateMachine.call(Game, :started?)
     status
+  end
+
+  def handle_message(msg, channel_id) do
+    msg
+    |> do_validate?(channel_id)
+    |> do_validate(msg, channel_id)
+  end
+
+  def do_validate?(msg, channel_id) do
+    BlindTest.exists?() &&
+      channel_id == msg.channel_id &&
+      BlindTest.guessing?() &&
+      BlindTest.plays?(msg.author.id)
+  end
+
+  def do_validate(false, _, _), do: :ignore
+
+  def do_validate(true, msg, channel_id) do
+    case Game.validate(msg.content, msg.author.id) do
+      {:ok, status, points} ->
+        # react to validation
+        BlindTest.react_to_validation(msg, channel_id, status, points)
+
+      :not_guessing ->
+        :ignore
+    end
   end
 
   @doc """

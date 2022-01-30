@@ -5,7 +5,6 @@ defmodule O2M do
 
   # This is a Nostrum Consumer
   use Nostrum.Consumer
-  alias Nostrum.Api
 
   @doc """
   Basic start and setup of the Nostrum consumer
@@ -18,7 +17,41 @@ defmodule O2M do
   @doc """
   Handle events from Discord
   """
-  def handle_event({:MESSAGE_REACTION_ADD, reaction, _ws_state}) do
+  def handle_event({:MESSAGE_REACTION_ADD, reaction, _ws_state}), do: handle_reaction(reaction)
+
+  def handle_event({:MESSAGE_CREATE, msg, _ws_state}) when msg.author.bot, do: :ignore
+
+  def handle_event({:MESSAGE_CREATE, msg, _ws_state}) do
+    # fetch prefix
+    {:ok, prefix} = Application.fetch_env(:o2m, :prefix)
+
+    msg
+    |> enrich_message(prefix)
+    |> handle_message()
+  end
+
+  # Default event handler, if you don't include this, your consumer WILL crash if
+  # you don't have a method definition for each event type.
+  def handle_event(_event) do
+    :noop
+  end
+
+  def enrich_message(msg, prefix) do
+    if String.starts_with?(msg.content, prefix) do
+      {:cmd, msg, prefix}
+    else
+      {:msg, msg}
+    end
+  end
+
+  def handle_message({:cmd, msg, prefix}), do: O2M.Commands.handle_message(msg, prefix)
+
+  def handle_message({:msg, msg}) when msg.content == "", do: :ignore
+
+  def handle_message({:msg, msg}),
+    do: BlindTest.handle_message(msg, O2M.Application.from_env_to_int(:o2m, :bt_chan))
+
+  def handle_reaction(reaction) do
     case reaction.emoji.name do
       "📌" ->
         Reminder.remind(reaction)
@@ -34,146 +67,11 @@ defmodule O2M do
             Nostrum.Api.create_message(reaction.channel_id, "**Error**: _#{reason}_")
 
           _ ->
-            nil
+            :ignore
         end
 
       _ ->
-        nil
+        :ignore
     end
-  end
-
-  def handle_event({:MESSAGE_CREATE, msg, _ws_state}) do
-    unless msg.author.bot do
-      # fetch prefix
-      {:ok, prefix} = Application.fetch_env(:o2m, :prefix)
-
-      # Handle commands
-      case O2M.Commands.extract_cmd_and_args(msg.content, prefix) do
-        # if an error occured while parsing
-        {:error, reason} ->
-          Api.create_message(msg.channel_id,
-            content: "**Error**: _#{reason}_",
-            message_reference: %{message_id: msg.id}
-          )
-
-        # if command is mo with args and subcommand
-        {:ok, "mo", sub, args} ->
-          reply =
-            case O2M.Commands.Mo.handle(sub, args) do
-              {:ok, reply} ->
-                reply
-
-              {:error, reason} ->
-                "**Error**: _#{reason}_"
-            end
-
-          Api.create_message(msg.channel_id,
-            content: reply,
-            message_reference: %{message_id: msg.id}
-          )
-
-        {:ok, "tmpl", sub, args} ->
-          reply =
-            case O2M.Commands.Tmpl.handle(sub, args) do
-              {:ok, reply} ->
-                reply
-
-              {:error, reason} ->
-                "**Error**: _#{reason}_"
-            end
-
-          Api.create_message(msg.channel_id,
-            content: reply,
-            message_reference: %{message_id: msg.id}
-          )
-
-        # if command is help with args and subcommand
-        {:ok, "help", _, _} ->
-          Api.create_message(msg.channel_id,
-            content: O2M.Commands.Help.handle(prefix),
-            message_reference: %{message_id: msg.id}
-          )
-
-        # if command is blind test
-        {:ok, "bt", sub, args} ->
-          case BlindTest.configured?() do
-            # Sometimes, handle does not return a message since it's heavily use reaction emojis
-            true ->
-              case O2M.Commands.Bt.handle(sub, args, msg) do
-                {:ok, :silent} ->
-                  nil
-
-                {:ok, reply} ->
-                  Api.create_message(msg.channel_id,
-                    content: reply,
-                    message_reference: %{message_id: msg.id}
-                  )
-
-                {:error, reason} ->
-                  Api.create_message(msg.channel_id,
-                    content: "**Error**: _#{reason}_",
-                    message_reference: %{message_id: msg.id}
-                  )
-              end
-
-            false ->
-              Api.create_message(
-                msg.channel_id,
-                content: "Sorry but blind test is **not configured** on this Discord Guild 😢",
-                message_reference: %{message_id: msg.id}
-              )
-          end
-
-        # if a command is not already catch by a case, this is not a supported command
-        {:ok, cmd, _, _} ->
-          case cmd do
-            "" ->
-              Api.create_message(
-                msg.channel_id,
-                content: "Sorry but I need at least **a command** to do something",
-                message_reference: %{message_id: msg.id}
-              )
-
-            _ ->
-              Api.create_message(msg.channel_id,
-                content: "Sorry but **#{cmd}** ? 🤷",
-                message_reference: %{message_id: msg.id}
-              )
-          end
-
-        # if no command, check if it's from a blind-test channel and if channel is in guessing mode
-        _ ->
-          case BlindTest.process() do
-            :none ->
-              :ignore
-
-            {:one, _pid} ->
-              channel_id = O2M.Application.from_env_to_int(:o2m, :bt_chan)
-
-              if channel_id == msg.channel_id &&
-                   msg.content != "" &&
-                   BlindTest.guessing?() &&
-                   BlindTest.plays?(msg.author.id) do
-                # validate answer
-                case Game.validate(msg.content, msg.author.id) do
-                  {:ok, status, points} ->
-                    # react to validation
-                    BlindTest.react_to_validation(msg, channel_id, status, points)
-
-                  :not_guessing ->
-                    :ignore
-                end
-              end
-          end
-
-          :ignore
-      end
-    end
-  end
-
-  # Default event handler, if you don't include this, your consumer WILL crash if
-  # you don't have a method definition for each event type.
-  def handle_event(_event) do
-    :noop
   end
 end
