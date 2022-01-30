@@ -53,25 +53,9 @@ defmodule O2M do
 
   def handle_reaction(reaction) do
     case reaction.emoji.name do
-      "📌" ->
-        Reminder.remind(reaction)
-
-      "👀" ->
-        with {:ok, origin} <-
-               Nostrum.Api.get_channel_message(reaction.channel_id, reaction.message_id),
-             {:ok, _chan} <- Discord.is_chan_private(origin.channel_id),
-             true <- origin.author.bot,
-             {:ok} <- Nostrum.Api.delete_message(reaction.channel_id, reaction.message_id) do
-        else
-          {:error, reason} ->
-            Nostrum.Api.create_message(reaction.channel_id, "**Error**: _#{reason}_")
-
-          _ ->
-            :ignore
-        end
-
-      _ ->
-        :ignore
+      "📌" -> Reminder.remind(reaction)
+      "👀" -> Reminder.delete(reaction)
+      _ -> :ignore
     end
   end
 end
