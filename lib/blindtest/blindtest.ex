@@ -263,42 +263,6 @@ defmodule BlindTest do
   end
 
   @doc """
-  Verify if current answer is the first field, the second field or both
-
-  Returns an atom describing the answer status
-
-  ## Examples
-      iex> BlindTest.verify_answer(%BlindTest.GuessEntry{f1s: ["Spiritbox"], f2s: ["Holly Roller"]}, "spiritbox holl roller")
-      :both
-  """
-  def verify_answer(expected, proposal, threshold \\ 0.2) do
-    sanitized = sanitize_input(proposal)
-
-    valid? =
-      &(Levenshtein.distance(&1, sanitized) /
-          String.length(Enum.max([&1, sanitized])) < threshold)
-
-    both_combinations =
-      for f1 <- expected.f1s, f2 <- expected.f2s do
-        ["#{f1} #{f2}", "#{f2} #{f1}"]
-      end
-
-    cond do
-      Enum.find_value(List.flatten(both_combinations), false, &valid?.(&1)) ->
-        :both
-
-      Enum.find_value(expected.f1s, false, &valid?.(&1)) ->
-        :f1
-
-      Enum.find_value(expected.f2s, false, &valid?.(&1)) ->
-        :f2
-
-      true ->
-        :wrong
-    end
-  end
-
-  @doc """
   React and respond to validate call
 
   Returns a reaction to an answer
