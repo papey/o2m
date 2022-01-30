@@ -1,4 +1,8 @@
 defmodule O2M.Commands do
+  @moduledoc """
+  Commands module handle routing to all available commands
+  """
+
   require Logger
   alias Nostrum.Api
 
@@ -10,11 +14,6 @@ defmodule O2M.Commands do
     "help" => &__MODULE__.Help.handle/3,
     "bt" => &__MODULE__.Bt.handle/3
   }
-
-  @moduledoc """
-  Commands module handle routing to all available commands
-  """
-
   @doc """
   Extract command, subcommand and args from a message
 
