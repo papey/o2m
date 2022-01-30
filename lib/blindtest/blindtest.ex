@@ -386,26 +386,6 @@ defmodule BlindTest do
          "You can only interact with blind test in channel #{Discord.channel(bt_chan_id)}"}
   end
 
-  @doc """
-  Check if current blind test process is in guessing mode
-
-  Returns true if the state of the state machine is guessing, false otherwise
-  """
-  def guessing?() do
-    {:ok, status} = GenStateMachine.call(Game, :guessing?)
-    status
-  end
-
-  def finished?() do
-    {:ok, status} = GenStateMachine.call(Game, :finished?)
-    status
-  end
-
-  def started?() do
-    {:ok, status} = GenStateMachine.call(Game, :started?)
-    status
-  end
-
   def handle_message(msg, channel_id) do
     msg
     |> do_validate?(channel_id)
@@ -426,6 +406,26 @@ defmodule BlindTest do
       {:ok, status, points} -> BlindTest.react_to_validation(msg, channel_id, status, points)
       :not_guessing -> :ignore
     end
+  end
+
+  @doc """
+  Check if current blind test process is in guessing mode
+
+  Returns true if the state of the state machine is guessing, false otherwise
+  """
+  def guessing?() do
+    {:ok, status} = GenStateMachine.call(Game, :guessing?)
+    status
+  end
+
+  def finished?() do
+    {:ok, status} = GenStateMachine.call(Game, :finished?)
+    status
+  end
+
+  def started?() do
+    {:ok, status} = GenStateMachine.call(Game, :started?)
+    status
   end
 
   @doc """
