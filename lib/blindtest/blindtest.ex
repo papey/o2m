@@ -459,12 +459,8 @@ defmodule BlindTest do
 
   def do_validate(true, msg, channel_id) do
     case Game.validate(msg.content, msg.author.id) do
-      {:ok, status, points} ->
-        # react to validation
-        BlindTest.react_to_validation(msg, channel_id, status, points)
-
-      :not_guessing ->
-        :ignore
+      {:ok, status, points} -> BlindTest.react_to_validation(msg, channel_id, status, points)
+      :not_guessing -> :ignore
     end
   end
 
