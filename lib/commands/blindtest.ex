@@ -163,26 +163,14 @@ defmodule O2M.Commands.Bt do
   def join(_args, msg) do
     with {:ok} <- BlindTest.ensure_running(),
          {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
-      case Game.add_player(msg.author.id) do
-        {:ok, :added} ->
-          # 👌
-          Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
-            name: Emojos.get(:joined)
-          })
+      Game.add_player(msg.author.id)
 
-          {:ok, :silent}
+      # 👌
+      Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
+        name: Emojos.get(:joined)
+      })
 
-        {:ok, :duplicate} ->
-          # 👌
-          Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
-            name: Emojos.get(:joined)
-          })
-
-          {:ok, :silent}
-
-        {:error, :not_transition} ->
-          {:ok, "You can only join a blind test **between two guesses**"}
-      end
+      {:ok, :silent}
     else
       error -> error
     end
@@ -198,9 +186,6 @@ defmodule O2M.Commands.Bt do
         case Game.remove_player(msg.author.id) do
           {:ok, :removed} ->
             "User #{msg.author} quit the game... BOOOOOO !"
-
-          {:error, :not_transition} ->
-            "You can only leave a blind test **between two guesses**"
 
           {:error, :not_playing} ->
             "User #{msg.author} please **join a blind** test before leaving one 😛"
