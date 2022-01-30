@@ -79,7 +79,7 @@ defmodule Jobs do
 
       # Update state
       Logger.info("Updating state", url: new.url)
-      {new.url, new}
+      new
     else
       # Keep old state
       Logger.info("Keeping the old state", url: old.url)
