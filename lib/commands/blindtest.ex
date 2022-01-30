@@ -597,7 +597,7 @@ defmodule O2M.Commands.Bt do
     {:error, "Unsupported `lboard` instruction"}
   end
 
-  def party(msg, ["reset" | _]) do
+  def party(["reset" | _], msg) do
     adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
     guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
@@ -609,7 +609,7 @@ defmodule O2M.Commands.Bt do
     end
   end
 
-  def party(_msg, ["list" | _]) do
+  def party(["list" | _], _msg) do
     reply =
       case Party.list_games() do
         [] ->
@@ -624,7 +624,7 @@ defmodule O2M.Commands.Bt do
     {:ok, reply}
   end
 
-  def party(_msg, ["overview" | _]) do
+  def party(["overview" | _], _msg) do
     reply =
       case Party.list_games() do
         [] ->
@@ -647,9 +647,9 @@ defmodule O2M.Commands.Bt do
     {:ok, reply}
   end
 
-  def party(_msg, ["get"]), do: {:error, "This command needs a game ID"}
+  def party(["get"], _msg), do: {:error, "This command needs a game ID"}
 
-  def party(_msg, ["get", id | _]) do
+  def party(["get", id | _], _msg) do
     case Integer.parse(id) do
       {val, _} ->
         reply =
@@ -668,7 +668,7 @@ defmodule O2M.Commands.Bt do
     end
   end
 
-  def party(msg, ["join" | _]) do
+  def party(["join" | _], msg) do
     Party.add_player(msg.author.id)
 
     # 👌
@@ -679,13 +679,13 @@ defmodule O2M.Commands.Bt do
     {:ok, :silent}
   end
 
-  def party(msg, ["leave" | _]) do
+  def party(["leave" | _], msg) do
     Party.remove_player(msg.author.id)
 
     {:ok, "XOXO #{Discord.mention(msg.author.id)} 😗"}
   end
 
-  def party(_, ["players" | _]) do
+  def party(["players" | _], _) do
     reply =
       case Party.list_players() do
         [] ->
