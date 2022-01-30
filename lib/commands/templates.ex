@@ -60,9 +60,6 @@ defmodule O2M.Commands.Tmpl do
             false ->
               "Template `#{template}` already exists"
 
-            {:warning, message} ->
-              message
-
             {:error, reason} ->
               Logger.error("Error while saving template to DETS file", reason: reason)
               reason
