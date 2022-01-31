@@ -231,8 +231,8 @@ defmodule O2M.Commands.Bt do
     guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
     with {:ok} <- BlindTest.ensure_running(),
-         {:ok} <- BlindTest.ensure_channel(msg.channel_id),
-         {:ok} <- member_has_persmission(msg.author, adm, guild_id) do
+         {:ok} <- member_has_persmission(msg.author, adm, guild_id),
+         {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
       case Game.start_game() do
         {:ok, _} ->
           Nostrum.Api.create_message!(
@@ -365,8 +365,8 @@ defmodule O2M.Commands.Bt do
     guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
     with {:ok} <- BlindTest.ensure_running(),
-         {:ok} <- BlindTest.ensure_channel(msg.channel_id),
-         {:ok} <- member_has_persmission(msg.author, adm, guild_id) do
+         {:ok} <- member_has_persmission(msg.author, adm, guild_id),
+         {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
       downloarder_pid = Process.whereis(Downloader.Worker)
       # kill downloader is any
       if downloarder_pid, do: Process.exit(downloarder_pid, :kill)
@@ -412,11 +412,13 @@ defmodule O2M.Commands.Bt do
     - **status**: fetch blind test status
 
     __Events commands__ (requires privileges)
+
     - **events list**: list blind test events
     - **events create date@time name**: date format YYYY-MM-DD@hh:mm eg 2022-01-29@21:00
     - **events start id**: get the ID from the `list` command
 
     __Party commands__
+
     - **party join**: join this party
     - **party leave**: leave this party
     - **party players**: list players in this party
@@ -508,7 +510,8 @@ defmodule O2M.Commands.Bt do
     adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
     guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
-    with {:ok} <- member_has_persmission(msg.author, adm, guild_id) do
+    with {:ok} <- member_has_persmission(msg.author, adm, guild_id),
+         {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
       case Integer.parse(points) do
         {val, _} ->
           [user | _] = msg.mentions
@@ -726,6 +729,7 @@ defmodule O2M.Commands.Bt do
     guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
     with {:ok} <- Discord.member_has_persmission(msg.author, adm, guild_id),
+         {:ok} <- BlindTest.ensure_channel(msg.channel_id),
          {:ok, event} <- Nostrum.Api.get_guild_scheduled_event(guild_id, id),
          {:ok, players} <- Nostrum.Api.get_guild_scheduled_event_users(guild_id, event.id) do
       Enum.map(players, fn p -> p.user.id end) |> Party.add_players()
