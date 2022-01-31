@@ -263,42 +263,6 @@ defmodule BlindTest do
   end
 
   @doc """
-  Verify if current answer is the first field, the second field or both
-
-  Returns an atom describing the answer status
-
-  ## Examples
-      iex> BlindTest.verify_answer(%BlindTest.GuessEntry{f1s: ["Spiritbox"], f2s: ["Holly Roller"]}, "spiritbox holl roller")
-      :both
-  """
-  def verify_answer(expected, proposal, threshold \\ 0.2) do
-    sanitized = sanitize_input(proposal)
-
-    valid? =
-      &(Levenshtein.distance(&1, sanitized) /
-          String.length(Enum.max([&1, sanitized])) < threshold)
-
-    both_combinations =
-      for f1 <- expected.f1s, f2 <- expected.f2s do
-        ["#{f1} #{f2}", "#{f2} #{f1}"]
-      end
-
-    cond do
-      Enum.find_value(List.flatten(both_combinations), false, &valid?.(&1)) ->
-        :both
-
-      Enum.find_value(expected.f1s, false, &valid?.(&1)) ->
-        :f1
-
-      Enum.find_value(expected.f2s, false, &valid?.(&1)) ->
-        :f2
-
-      true ->
-        :wrong
-    end
-  end
-
-  @doc """
   React and respond to validate call
 
   Returns a reaction to an answer
@@ -361,6 +325,13 @@ defmodule BlindTest do
     end
   end
 
+  def exists?() do
+    case process() do
+      :none -> false
+      _ -> true
+    end
+  end
+
   @doc """
   Ensure there is no running game
 
@@ -412,7 +383,29 @@ defmodule BlindTest do
       do: {:ok},
       else:
         {:error,
-         "You can only interact with blind test in channel #{Discord.channel(bt_chan_id)}"}
+         "To use this command, you have to interact with blind test in channel #{Discord.channel(bt_chan_id)}"}
+  end
+
+  def handle_message(msg, channel_id) do
+    msg
+    |> do_validate?(channel_id)
+    |> do_validate(msg, channel_id)
+  end
+
+  def do_validate?(msg, channel_id) do
+    BlindTest.exists?() &&
+      channel_id == msg.channel_id &&
+      BlindTest.guessing?() &&
+      BlindTest.plays?(msg.author.id)
+  end
+
+  def do_validate(false, _, _), do: :ignore
+
+  def do_validate(true, msg, channel_id) do
+    case Game.validate(msg.content, msg.author.id) do
+      {:ok, status, points} -> BlindTest.react_to_validation(msg, channel_id, status, points)
+      :not_guessing -> :ignore
+    end
   end
 
   @doc """

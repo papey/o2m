@@ -52,48 +52,38 @@ defmodule Jobs do
     O2M.Application.from_env_to_int(:o2m, :timer)
   end
 
-  defp work_then_reschedule(state) do
-    # Fetch current state
-    {url, last} = state
-
+  defp work_then_reschedule({url, state}) do
     # Wait
     Process.send_after(self(), :work, get_timer_config() * 1000)
 
     # Get last episode from feed
-    case Feed.get_last_episode(url) do
-      # If no data from new episode, return the old state
-      :nodata ->
-        state
+    next =
+      url
+      |> Feed.get_last_episode()
+      |> refresh_state(state)
 
-      # If there is fresh data
-      new ->
-        # if no data, consider it as an init
-        case last do
-          :nodata ->
-            Logger.info("Setting up state after receiving no data", url: url)
-            {url, new}
+    {url, next}
+  end
 
-          # Pattern match the old date
-          %{:date => date, :show => _, :title => _, :url => _} ->
-            case Feed.compare_dates(date, new.date) do
-              # If so
-              -1 ->
-                # Post a message
-                Api.create_message(
-                  O2M.Application.from_env_to_int(:o2m, :chan),
-                  Feed.new_message(new)
-                )
+  defp refresh_state(:nodata, old), do: old
 
-                # Update state
-                Logger.info("Updating state", url: url)
-                {url, new}
+  defp refresh_state(new, :nodata), do: new
 
-              _ ->
-                # Keep old state
-                Logger.info("Keeping the old state", url: url)
-                state
-            end
-        end
+  defp refresh_state(new, old) do
+    if Feed.compare_dates(old.date, new.date) == -1 do
+      # Post a message
+      Api.create_message(
+        O2M.Application.from_env_to_int(:o2m, :chan),
+        Feed.new_message(new)
+      )
+
+      # Update state
+      Logger.info("Updating state", url: new.url)
+      new
+    else
+      # Keep old state
+      Logger.info("Keeping the old state", url: old.url)
+      old
     end
   end
 end

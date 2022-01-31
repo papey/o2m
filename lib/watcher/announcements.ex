@@ -113,9 +113,7 @@ defmodule Announcements do
   @doc """
   Announce is used to roll a template and replace data to create a ready to go message
   """
-  def announce(metadata) do
-    generate(roll(), metadata)
-  end
+  def announce(metadata), do: roll() |> generate(metadata)
 
   defmodule Storage do
     @moduledoc """
@@ -138,7 +136,7 @@ defmodule Announcements do
     Store template if checks pass
     """
     def put(template) do
-      case length(get_all()) do
+      case get_all() |> length() do
         l when l < @limit ->
           path = to_charlist(Application.fetch_env!(:o2m, :tmpl_dets))
           {:ok, table} = :dets.open_file(path, type: :set)
@@ -152,7 +150,7 @@ defmodule Announcements do
             template: template
           )
 
-          {:warning, "Template not added, storage limit (#{@limit}) reached"}
+          {:error, "Template not added, storage limit (#{@limit}) reached"}
       end
     end
 

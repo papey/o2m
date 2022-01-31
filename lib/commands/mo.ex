@@ -8,7 +8,7 @@ defmodule O2M.Commands.Mo do
   @doc """
   Handle Mo commands and route to sub commands
   """
-  def handle(sub, args) do
+  def handle(sub, args, _) do
     case sub do
       "band" ->
         band(args)

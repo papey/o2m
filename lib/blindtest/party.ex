@@ -36,9 +36,7 @@ defmodule Party do
   end
 
   def add_player(pid) do
-    if BlindTest.process() != :none do
-      Game.add_player(pid)
-    end
+    if BlindTest.exists?(), do: Game.add_player(pid)
 
     Agent.update(__MODULE__, fn party ->
       %{party | players: MapSet.put(party.players, pid)}

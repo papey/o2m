@@ -1,15 +1,53 @@
 defmodule O2M.Commands.Bt do
-  require Logger
-
   @moduledoc """
   Bt module handles call to bind test command
   """
   import Discord
+  require Logger
+  alias Downloader.Yydl
+
+  @subcmds [
+    "init",
+    "join",
+    "leave",
+    "players",
+    "start",
+    "ranking",
+    "status",
+    "pass",
+    "destroy",
+    "help",
+    "rules",
+    "lboard",
+    "bam",
+    "check",
+    "party",
+    "events"
+  ]
+
+  @subhandlers %{
+    "init" => &__MODULE__.init/2,
+    "join" => &__MODULE__.join/2,
+    "leave" => &__MODULE__.leave/2,
+    "players" => &__MODULE__.players/2,
+    "start" => &__MODULE__.start/2,
+    "ranking" => &__MODULE__.ranking/2,
+    "status" => &__MODULE__.status/2,
+    "pass" => &__MODULE__.pass/2,
+    "destroy" => &__MODULE__.destroy/2,
+    "help" => &__MODULE__.help/2,
+    "rules" => &__MODULE__.rules/2,
+    "lboard" => &__MODULE__.lboard/2,
+    "bam" => &__MODULE__.bam/2,
+    "check" => &__MODULE__.check/2,
+    "party" => &__MODULE__.party/2,
+    "events" => &__MODULE__.events/2
+  }
 
   @doc """
   Handle blind test init command
   """
-  def init(msg, args) do
+  def init(args, msg) do
     adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
     guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
@@ -25,7 +63,7 @@ defmodule O2M.Commands.Bt do
   @doc """
   Handle blind test init command
   """
-  def check(msg) do
+  def check(_args, msg) do
     with {:ok, _chan} <- is_chan_private(msg.channel_id),
          {:ok, {filename, guess_entries}} <- BlindTest.check(msg.attachments) do
       Nostrum.Api.create_message!(
@@ -38,66 +76,22 @@ defmodule O2M.Commands.Bt do
         "__Moving on to download checks__"
       )
 
+      {:ok, start, to} = Downloader.parse_timestamps(0, 1)
+
       errors =
         Enum.reduce(guess_entries, 0, fn guess, acc ->
-          with {:ok, stdout} <- Downloader.Yydl.get(guess.url),
-               [data_url | _] <- String.split(stdout, "\n") do
-            start =
-              Timex.Duration.to_time!(%Timex.Duration{
-                microseconds: 0,
-                megaseconds: 0,
-                seconds: 0
-              })
-
-            to =
-              Timex.Duration.to_time!(%Timex.Duration{
-                microseconds: 0,
-                megaseconds: 0,
-                seconds: 1
-              })
-
-            case System.cmd("ffmpeg", [
-                   "-y",
-                   "-ss",
-                   Time.to_string(start),
-                   "-to",
-                   Time.to_string(to),
-                   "-i",
-                   data_url,
-                   "-c:a",
-                   "libopus",
-                   "-ac",
-                   "1",
-                   "-b:a",
-                   "96K",
-                   "-vbr",
-                   "on",
-                   "-frame_duration",
-                   "20",
-                   "-f",
-                   "null",
-                   "/dev/null"
-                 ]) do
-              {_stdout, 0} ->
-                acc
-
-              {_stderr, _} ->
-                Nostrum.Api.create_message(
-                  msg.channel_id,
-                  "__Downloader checker update__: error getting raw data for url #{guess.url}"
-                )
-
-                acc + 1
-            end
+          with {:ok, data_url} <- Downloader.Yydl.get_url(guess.url),
+               {:ok} <-
+                 Yydl.get_data(%Yydl.DownloadData{
+                   data_url: data_url,
+                   url: guess.url,
+                   ts_from: start,
+                   ts_to: to,
+                   output: "/dev/null",
+                   check: true
+                 }) do
+            acc
           else
-            [] ->
-              Nostrum.Api.create_message(
-                msg.channel_id,
-                "__Downloader checker update__: no data found for url #{guess.url}"
-              )
-
-              acc + 1
-
             {:error, _} ->
               Nostrum.Api.create_message(
                 msg.channel_id,
@@ -123,29 +117,17 @@ defmodule O2M.Commands.Bt do
   @doc """
   Handle join commmand
   """
-  def join(msg) do
+  def join(_args, msg) do
     with {:ok} <- BlindTest.ensure_running(),
          {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
-      case Game.add_player(msg.author.id) do
-        {:ok, :added} ->
-          # 👌
-          Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
-            name: Emojos.get(:joined)
-          })
+      Game.add_player(msg.author.id)
 
-          {:ok, :silent}
+      # 👌
+      Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
+        name: Emojos.get(:joined)
+      })
 
-        {:ok, :duplicate} ->
-          # 👌
-          Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
-            name: Emojos.get(:joined)
-          })
-
-          {:ok, :silent}
-
-        {:error, :not_transition} ->
-          {:ok, "You can only join a blind test **between two guesses**"}
-      end
+      {:ok, :silent}
     else
       error -> error
     end
@@ -154,16 +136,13 @@ defmodule O2M.Commands.Bt do
   @doc """
   Handle leave commmand
   """
-  def leave(msg) do
+  def leave(_args, msg) do
     with {:ok} <- BlindTest.ensure_running(),
          {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
       reply =
         case Game.remove_player(msg.author.id) do
           {:ok, :removed} ->
             "User #{msg.author} quit the game... BOOOOOO !"
-
-          {:error, :not_transition} ->
-            "You can only leave a blind test **between two guesses**"
 
           {:error, :not_playing} ->
             "User #{msg.author} please **join a blind** test before leaving one 😛"
@@ -178,7 +157,7 @@ defmodule O2M.Commands.Bt do
   @doc """
   Handle players command
   """
-  def players(msg) do
+  def players(_args, msg) do
     guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
     with {:ok} <- BlindTest.ensure_running(),
@@ -247,13 +226,13 @@ defmodule O2M.Commands.Bt do
   @doc """
   Handle start command
   """
-  def start(msg) do
+  def start(_args, msg) do
     adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
     guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
     with {:ok} <- BlindTest.ensure_running(),
-         {:ok} <- BlindTest.ensure_channel(msg.channel_id),
-         {:ok} <- member_has_persmission(msg.author, adm, guild_id) do
+         {:ok} <- member_has_persmission(msg.author, adm, guild_id),
+         {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
       case Game.start_game() do
         {:ok, _} ->
           Nostrum.Api.create_message!(
@@ -293,7 +272,7 @@ defmodule O2M.Commands.Bt do
   @doc """
   Handle ranking command
   """
-  def ranking(msg) do
+  def ranking(_args, msg) do
     with {:ok} <- BlindTest.ensure_running(),
          {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
       case Game.get_ranking() do
@@ -311,7 +290,7 @@ defmodule O2M.Commands.Bt do
   @doc """
   Handle pass command
   """
-  def pass(msg) do
+  def pass(_args, msg) do
     with {:ok} <- BlindTest.ensure_running(),
          {:ok} <- BlindTest.ensure_channel(msg.channel_id),
          {:ok} <- Game.contains_player(msg.author.id) do
@@ -351,7 +330,7 @@ defmodule O2M.Commands.Bt do
   @doc """
   Handle status command
   """
-  def status(_msg) do
+  def status(_, _) do
     case BlindTest.status() do
       :none ->
         {:ok, "No blind test running"}
@@ -381,13 +360,13 @@ defmodule O2M.Commands.Bt do
   @doc """
   Handle destroy command
   """
-  def destroy(msg) do
+  def destroy(_args, msg) do
     adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
     guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
     with {:ok} <- BlindTest.ensure_running(),
-         {:ok} <- BlindTest.ensure_channel(msg.channel_id),
-         {:ok} <- member_has_persmission(msg.author, adm, guild_id) do
+         {:ok} <- member_has_persmission(msg.author, adm, guild_id),
+         {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
       downloarder_pid = Process.whereis(Downloader.Worker)
       # kill downloader is any
       if downloarder_pid, do: Process.exit(downloarder_pid, :kill)
@@ -414,7 +393,7 @@ defmodule O2M.Commands.Bt do
   @doc """
   Handle help message
   """
-  def help() do
+  def help(_, _) do
     reply = "Available **bt** subcommands are :
 
     __Administration commands__ (requires privileges)
@@ -432,26 +411,28 @@ defmodule O2M.Commands.Bt do
     - **ranking**: list current ranking for this session
     - **status**: fetch blind test status
 
-    __Events commands__
+    __Events commands__ (requires privileges)
+
     - **events list**: list blind test events
     - **events create date@time name**: date format YYYY-MM-DD@hh:mm eg 2022-01-29@21:00
     - **events start id**: get the ID from the `list` command
 
     __Party commands__
+
     - **party join**: join this party
     - **party leave**: leave this party
     - **party players**: list players in this party
     - **party overview**: get an overview of the current party
     - **party list**: list all the games for this party
     - **party get <ID>**: get data about a specific game
-    - **party reset**: reset party data (admin)
+    - **party reset**: reset party data [admin]
 
     __Leaderboard commands__
 
-    - **lboard top**: print top 15 leaderboard (admin)
-    - **lboard set @user +<value>**: add value to @user score
-    - **lboard set @user -<value>**: substract value to @user score
-    - **lboard set @user =<value>**: set @user score to value
+    - **lboard top**: print top 15 leaderboard
+    - **lboard set @user +<value>**: add value to @user score [admin]
+    - **lboard set @user -<value>**: substract value to @user score [admin]
+    - **lboard set @user =<value>**: set @user score to value [admin]
     - **lboard get**: get asking user score
 
     __Help commands__
@@ -465,7 +446,7 @@ defmodule O2M.Commands.Bt do
     {:ok, reply}
   end
 
-  def rules() do
+  def rules(_, _) do
     reply = "**Blind test rules**
 
       __Reaction emojis__
@@ -499,11 +480,11 @@ defmodule O2M.Commands.Bt do
     {:ok, reply}
   end
 
-  def lboard(_msg, []) do
+  def lboard([], _msg) do
     {:error, "Missing instruction for `lboard` subcommand"}
   end
 
-  def lboard(msg, ["top" | _]) do
+  def lboard(["top" | _], msg) do
     adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
     guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
@@ -525,34 +506,32 @@ defmodule O2M.Commands.Bt do
     end
   end
 
-  def lboard(msg, ["set", _user, <<instruction::binary-size(1)>> <> points | _]) do
+  def lboard(["set", _user, <<instruction::binary-size(1)>> <> points | _], msg) do
     adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
     guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
-    with {:ok} <- member_has_persmission(msg.author, adm, guild_id) do
+    with {:ok} <- member_has_persmission(msg.author, adm, guild_id),
+         {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
       case Integer.parse(points) do
         {val, _} ->
           [user | _] = msg.mentions
 
-          reply =
-            case instruction do
-              "=" ->
-                Leaderboard.set(user.id, val)
-                "#{Discord.mention(user.id)}'s score set to #{val}"
+          case instruction do
+            "=" ->
+              Leaderboard.set(user.id, val)
+              {:ok, "#{Discord.mention(user.id)}'s score set to #{val}"}
 
-              "+" ->
-                {:ok, updated} = Leaderboard.delta(user.id, val, &Kernel.+/2)
-                "#{Discord.mention(user.id)}'s score updated to #{updated} (+#{val})"
+            "+" ->
+              {:ok, updated} = Leaderboard.delta(user.id, val, &Kernel.+/2)
+              {:ok, "#{Discord.mention(user.id)}'s score updated to #{updated} (+#{val})"}
 
-              "-" ->
-                {:ok, updated} = Leaderboard.delta(user.id, val, &Kernel.-/2)
-                "#{Discord.mention(user.id)}'s score updated to #{updated} (-#{val})"
+            "-" ->
+              {:ok, updated} = Leaderboard.delta(user.id, val, &Kernel.-/2)
+              {:ok, "#{Discord.mention(user.id)}'s score updated to #{updated} (-#{val})"}
 
-              _ ->
-                "Not a valid set instruction"
-            end
-
-          {:ok, reply}
+            _ ->
+              {:error, "Not a valid set instruction"}
+          end
 
         :error ->
           {:error, "#{points} is not a valid integer value"}
@@ -562,20 +541,20 @@ defmodule O2M.Commands.Bt do
     end
   end
 
-  def lboard(_msg, ["set" | _]) do
+  def lboard(["set" | _], _msg) do
     {:error, "Missing arguments for `set` instruction"}
   end
 
-  def lboard(msg, ["get" | _]) do
+  def lboard(["get" | _], msg) do
     total = Leaderboard.get(msg.author.id)
     {:ok, "Total for user #{mention(msg.author.id)} : #{if total == 0, do: "👌", else: total}"}
   end
 
-  def lboard(_msg, _) do
+  def lboard(_, _) do
     {:error, "Unsupported `lboard` instruction"}
   end
 
-  def party(msg, ["reset" | _]) do
+  def party(["reset" | _], msg) do
     adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
     guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
@@ -587,7 +566,7 @@ defmodule O2M.Commands.Bt do
     end
   end
 
-  def party(_msg, ["list" | _]) do
+  def party(["list" | _], _msg) do
     reply =
       case Party.list_games() do
         [] ->
@@ -602,7 +581,7 @@ defmodule O2M.Commands.Bt do
     {:ok, reply}
   end
 
-  def party(_msg, ["overview" | _]) do
+  def party(["overview" | _], _msg) do
     reply =
       case Party.list_games() do
         [] ->
@@ -625,9 +604,9 @@ defmodule O2M.Commands.Bt do
     {:ok, reply}
   end
 
-  def party(_msg, ["get"]), do: {:error, "This command needs a game ID"}
+  def party(["get"], _msg), do: {:error, "This command needs a game ID"}
 
-  def party(_msg, ["get", id | _]) do
+  def party(["get", id | _], _msg) do
     case Integer.parse(id) do
       {val, _} ->
         reply =
@@ -646,7 +625,7 @@ defmodule O2M.Commands.Bt do
     end
   end
 
-  def party(msg, ["join" | _]) do
+  def party(["join" | _], msg) do
     Party.add_player(msg.author.id)
 
     # 👌
@@ -657,13 +636,13 @@ defmodule O2M.Commands.Bt do
     {:ok, :silent}
   end
 
-  def party(msg, ["leave" | _]) do
+  def party(["leave" | _], msg) do
     Party.remove_player(msg.author.id)
 
     {:ok, "XOXO #{Discord.mention(msg.author.id)} 😗"}
   end
 
-  def party(_, ["players" | _]) do
+  def party(["players" | _], _) do
     reply =
       case Party.list_players() do
         [] ->
@@ -688,11 +667,11 @@ defmodule O2M.Commands.Bt do
     {:error, "Missing valid instruction for `party` subcommand"}
   end
 
-  def events(_, ["create", _ | []]) do
+  def events(["create", _ | []], _msg) do
     {:error, "Missing event name for `create` subcommand"}
   end
 
-  def events(msg, ["create", date | args]) do
+  def events(["create", date | args], msg) do
     adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
     guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
@@ -716,11 +695,11 @@ defmodule O2M.Commands.Bt do
     end
   end
 
-  def events(_msg, ["create" | _]) do
+  def events(["create" | _], _msg) do
     {:error, "Missing arguments for `create` subcommand"}
   end
 
-  def events(_msg, ["list" | _]) do
+  def events(["list" | _], _msg) do
     guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
     case Nostrum.Api.get_guild_scheduled_events(guild_id) do
@@ -745,11 +724,12 @@ defmodule O2M.Commands.Bt do
     end
   end
 
-  def events(msg, ["start", id | _]) do
+  def events(["start", id | _], msg) do
     adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
     guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
 
     with {:ok} <- Discord.member_has_persmission(msg.author, adm, guild_id),
+         {:ok} <- BlindTest.ensure_channel(msg.channel_id),
          {:ok, event} <- Nostrum.Api.get_guild_scheduled_event(guild_id, id),
          {:ok, players} <- Nostrum.Api.get_guild_scheduled_event_users(guild_id, event.id) do
       Enum.map(players, fn p -> p.user.id end) |> Party.add_players()
@@ -759,15 +739,15 @@ defmodule O2M.Commands.Bt do
     end
   end
 
-  def events(_msg, ["start"]) do
+  def events(["start"], _msg) do
     {:error, "Missing arguments for `start` subcommand"}
   end
 
-  def events(_msg, _) do
+  def events(_, _) do
     {:error, "Missing valid instruction for `events` subcommand"}
   end
 
-  def bam() do
+  def bam(_, _) do
     reply =
       [
         "https://youtu.be/iRbnY8EK4Ew",
@@ -788,60 +768,20 @@ defmodule O2M.Commands.Bt do
   Handle and route blind-test subcommands
   """
   def handle(sub, args, msg) do
+    if BlindTest.configured?(),
+      do: do_handle(sub, args, msg),
+      else: {:error, "Blind test is **not configured** on this Discord Guild 😢"}
+  end
+
+  def do_handle(sub, args, msg) when sub in @subcmds do
     Logger.info("Blind test command received", sub: sub, message: msg.content)
 
-    case sub do
-      "init" ->
-        init(msg, args)
+    handler_fun = Map.get(@subhandlers, sub)
 
-      "join" ->
-        join(msg)
+    handler_fun.(args, msg)
+  end
 
-      "leave" ->
-        leave(msg)
-
-      "players" ->
-        players(msg)
-
-      "start" ->
-        start(msg)
-
-      "ranking" ->
-        ranking(msg)
-
-      "status" ->
-        status(msg)
-
-      "pass" ->
-        pass(msg)
-
-      "destroy" ->
-        destroy(msg)
-
-      "help" ->
-        help()
-
-      "rules" ->
-        rules()
-
-      "lboard" ->
-        lboard(msg, args)
-
-      # Easter egg, only for Zblah request
-      "bam" ->
-        bam()
-
-      "check" ->
-        check(msg)
-
-      "party" ->
-        party(msg, args)
-
-      "events" ->
-        events(msg, args)
-
-      _ ->
-        {:error, "Subcommand **#{sub}** of command **bt** is not supported"}
-    end
+  def do_handle(sub, _args, _msg) do
+    {:error, "Subcommand **#{sub}** of command **bt** is not supported"}
   end
 end
