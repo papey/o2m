@@ -12,31 +12,32 @@ defmodule Feed do
   """
   def get_last_episode(url) do
     # Get rss feed
-    case Tesla.get(url) do
-      {:ok, resp} ->
-        case resp.status do
-          200 ->
-            # Parse feed
-            xml = ElixirFeedParser.parse(resp.body)
+    url
+    |> Tesla.get()
+    |> handle_resp(url)
+  end
 
-            # Get last episode
-            [last | _] = xml.entries
+  defp handle_resp({:ok, resp}, _url) when resp.status == 200 do
+    xml = ElixirFeedParser.parse(resp.body)
 
-            # Return needed data
-            %{date: last.updated, title: last.title, url: last.url, show: xml.title}
+    # Get last episode
+    [last | _] = xml.entries
 
-          _ ->
-            Logger.error("Received non 200 (ok) HTTP status code, sending :nodata atom",
-              code: resp.status
-            )
+    # Return needed data
+    %{date: last.updated, title: last.title, url: last.url, show: xml.title}
+  end
 
-            :nodata
-        end
+  defp handle_resp({:ok, resp}, _url) do
+    Logger.error("Received non 200 (ok) HTTP status code, sending :nodata atom",
+      code: resp.status
+    )
 
-      {:error, message} ->
-        Logger.error("Error getting last episode", url: url, reason: message)
-        :nodata
-    end
+    :nodata
+  end
+
+  defp handle_resp({:error, reason}, url) do
+    Logger.error("Error getting last episode", url: url, reason: reason)
+    :nodata
   end
 
   @doc """
