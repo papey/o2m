@@ -4,6 +4,7 @@ defmodule O2M.Commands.Bt do
   """
   import Discord
   require Logger
+  alias Downloader.Yydl
 
   @subcmds [
     "init",
@@ -75,66 +76,22 @@ defmodule O2M.Commands.Bt do
         "__Moving on to download checks__"
       )
 
+      {:ok, start, to} = Downloader.parse_timestamps(0, 1)
+
       errors =
         Enum.reduce(guess_entries, 0, fn guess, acc ->
-          with {:ok, stdout} <- Downloader.Yydl.get(guess.url),
-               [data_url | _] <- String.split(stdout, "\n") do
-            start =
-              Timex.Duration.to_time!(%Timex.Duration{
-                microseconds: 0,
-                megaseconds: 0,
-                seconds: 0
-              })
-
-            to =
-              Timex.Duration.to_time!(%Timex.Duration{
-                microseconds: 0,
-                megaseconds: 0,
-                seconds: 1
-              })
-
-            case System.cmd("ffmpeg", [
-                   "-y",
-                   "-ss",
-                   Time.to_string(start),
-                   "-to",
-                   Time.to_string(to),
-                   "-i",
-                   data_url,
-                   "-c:a",
-                   "libopus",
-                   "-ac",
-                   "1",
-                   "-b:a",
-                   "96K",
-                   "-vbr",
-                   "on",
-                   "-frame_duration",
-                   "20",
-                   "-f",
-                   "null",
-                   "/dev/null"
-                 ]) do
-              {_stdout, 0} ->
-                acc
-
-              {_stderr, _} ->
-                Nostrum.Api.create_message(
-                  msg.channel_id,
-                  "__Downloader checker update__: error getting raw data for url #{guess.url}"
-                )
-
-                acc + 1
-            end
+          with {:ok, data_url} <- Downloader.Yydl.get_url(guess.url),
+               {:ok} <-
+                 Yydl.get_data(%Yydl.DownloadData{
+                   data_url: data_url,
+                   url: guess.url,
+                   ts_from: start,
+                   ts_to: to,
+                   output: "/dev/null",
+                   check: true
+                 }) do
+            acc
           else
-            [] ->
-              Nostrum.Api.create_message(
-                msg.channel_id,
-                "__Downloader checker update__: no data found for url #{guess.url}"
-              )
-
-              acc + 1
-
             {:error, _} ->
               Nostrum.Api.create_message(
                 msg.channel_id,
