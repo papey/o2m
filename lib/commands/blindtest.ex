@@ -513,25 +513,22 @@ defmodule O2M.Commands.Bt do
         {val, _} ->
           [user | _] = msg.mentions
 
-          reply =
-            case instruction do
-              "=" ->
-                Leaderboard.set(user.id, val)
-                "#{Discord.mention(user.id)}'s score set to #{val}"
+          case instruction do
+            "=" ->
+              Leaderboard.set(user.id, val)
+              {:ok, "#{Discord.mention(user.id)}'s score set to #{val}"}
 
-              "+" ->
-                {:ok, updated} = Leaderboard.delta(user.id, val, &Kernel.+/2)
-                "#{Discord.mention(user.id)}'s score updated to #{updated} (+#{val})"
+            "+" ->
+              {:ok, updated} = Leaderboard.delta(user.id, val, &Kernel.+/2)
+              {:ok, "#{Discord.mention(user.id)}'s score updated to #{updated} (+#{val})"}
 
-              "-" ->
-                {:ok, updated} = Leaderboard.delta(user.id, val, &Kernel.-/2)
-                "#{Discord.mention(user.id)}'s score updated to #{updated} (-#{val})"
+            "-" ->
+              {:ok, updated} = Leaderboard.delta(user.id, val, &Kernel.-/2)
+              {:ok, "#{Discord.mention(user.id)}'s score updated to #{updated} (-#{val})"}
 
-              _ ->
-                "Not a valid set instruction"
-            end
-
-          {:ok, reply}
+            _ ->
+              {:error, "Not a valid set instruction"}
+          end
 
         :error ->
           {:error, "#{points} is not a valid integer value"}
