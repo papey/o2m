@@ -383,7 +383,7 @@ defmodule BlindTest do
       do: {:ok},
       else:
         {:error,
-         "You can only interact with blind test in channel #{Discord.channel(bt_chan_id)}"}
+         "To use this command, you have to interact with blind test in channel #{Discord.channel(bt_chan_id)}"}
   end
 
   def handle_message(msg, channel_id) do
