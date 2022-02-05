@@ -430,7 +430,7 @@ defmodule Game do
   end
 
   def handle_event(:enter, _event, :transition, data) do
-    Nostrum.Voice.stop(O2M.Config.get(:bt_vocal))
+    Nostrum.Voice.stop(data.guild_id)
 
     Nostrum.Api.create_message(data.channel_id,
       embed: %Nostrum.Struct.Embed{
@@ -448,7 +448,7 @@ defmodule Game do
   end
 
   def handle_event(:enter, _event, :finished, data) do
-    Nostrum.Voice.stop(O2M.Config.get(:bt_vocal))
+    Nostrum.Voice.stop(data.guild_id)
 
     Nostrum.Api.create_message(data.channel_id,
       embed: %Nostrum.Struct.Embed{
