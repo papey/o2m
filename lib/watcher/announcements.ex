@@ -19,13 +19,6 @@ defmodule Announcements do
   end
 
   @doc """
-  Get default value from end
-  """
-  def get_default() do
-    Application.fetch_env!(:o2m, :default_message)
-  end
-
-  @doc """
   Get keys from placeholders
 
   ## Examples
@@ -138,7 +131,7 @@ defmodule Announcements do
     def put(template) do
       case get_all() |> length() do
         l when l < @limit ->
-          path = to_charlist(Application.fetch_env!(:o2m, :tmpl_dets))
+          path = to_charlist(O2M.Config.get(:tmpl_dets))
           {:ok, table} = :dets.open_file(path, type: :set)
           ret = :dets.insert_new(table, {genkey(template), template})
           :dets.close(table)
@@ -158,7 +151,7 @@ defmodule Announcements do
     List all stored templates
     """
     def get_all() do
-      path = to_charlist(Application.fetch_env!(:o2m, :tmpl_dets))
+      path = to_charlist(O2M.Config.get(:tmpl_dets))
       {:ok, table} = :dets.open_file(path, type: :set)
       objs = :dets.match_object(table, {:"$1", :"$2"})
       :dets.close(table)
@@ -169,7 +162,7 @@ defmodule Announcements do
     Remove a specific stored template
     """
     def delete(hash) do
-      path = to_charlist(Application.fetch_env!(:o2m, :tmpl_dets))
+      path = to_charlist(O2M.Config.get(:tmpl_dets))
       {:ok, table} = :dets.open_file(path, type: :set)
       ret = :dets.delete(table, hash)
       :dets.close(table)

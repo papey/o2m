@@ -1,5 +1,6 @@
 defmodule O2M.Commands.Mo do
   import Metalorgie
+  alias O2M.Config
 
   @moduledoc """
   Mo module handle call to mo command
@@ -74,8 +75,8 @@ defmodule O2M.Commands.Mo do
   """
   def help([]) do
     reply = "Available **mo** subcommands are :
-    - **album**: to get album info (try _#{Application.fetch_env!(:o2m, :prefix)}mo help album_)
-    - **band**: to get page band info (try _#{Application.fetch_env!(:o2m, :prefix)}mo help band_)
+    - **album**: to get album info (try _#{Config.get(:prefix)}mo help album_)
+    - **band**: to get page band info (try _#{Config.get(:prefix)}mo help band_)
     - **help**: to get this help message"
 
     {:ok, reply}
@@ -86,10 +87,10 @@ defmodule O2M.Commands.Mo do
     reply =
       case Enum.join(args, " ") do
         "album" ->
-          "Here is an example of \`album\` subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}mo album korn // follow the leader \`\`\`"
+          "Here is an example of \`album\` subcommand : \`\`\`#{Config.get(:prefix)}mo album korn // follow the leader \`\`\`"
 
         "band" ->
-          "Here is an example of \`band\` subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}mo band korn\`\`\`"
+          "Here is an example of \`band\` subcommand : \`\`\`#{Config.get(:prefix)}mo band korn\`\`\`"
 
         sub ->
           "Subcommand #{sub} not available"

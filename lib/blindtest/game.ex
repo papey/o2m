@@ -136,7 +136,7 @@ defmodule Game do
         :fields => [
           %Nostrum.Struct.Embed.Field{
             name: "Start command",
-            value: "`#{Application.fetch_env!(:o2m, :prefix)}bt start`"
+            value: "`#{O2M.Config.get(:prefix)}bt start`"
           }
         ],
         :color => Colors.get_color(:info)
@@ -305,7 +305,7 @@ defmodule Game do
           }
         )
 
-        Nostrum.Voice.play(O2M.Application.from_env_to_int(:o2m, :guild), p, :url)
+        :ok = Nostrum.Voice.play(O2M.Config.get(:guild), p, :url)
 
         {:keep_state, updated_data,
          [{:state_timeout, data.config.guess_duration * 1000, :not_guessed}]}
@@ -318,9 +318,7 @@ defmodule Game do
   end
 
   def handle_event(:enter, _event, :waiting, data) do
-    guild = O2M.Application.from_env_to_int(:o2m, :guild)
-    voice = O2M.Application.from_env_to_int(:o2m, :bt_vocal)
-    Nostrum.Voice.join_channel(guild, voice)
+    Nostrum.Voice.join_channel(O2M.Config.get(:guild), O2M.Config.get(:bt_vocal))
 
     # Start the downloader worker inside the game statem
     Downloader.Worker.start_link(data.downloader)
@@ -341,7 +339,7 @@ defmodule Game do
           },
           %Nostrum.Struct.Embed.Field{
             name: "Join command",
-            value: "`#{Application.fetch_env!(:o2m, :prefix)}bt join`"
+            value: "`#{O2M.Config.get(:prefix)}bt join`"
           },
           %Nostrum.Struct.Embed.Field{
             name: "Rules",
@@ -432,7 +430,7 @@ defmodule Game do
   end
 
   def handle_event(:enter, _event, :transition, data) do
-    Nostrum.Voice.stop(O2M.Application.from_env_to_int(:o2m, :guild))
+    Nostrum.Voice.stop(data.guild_id)
 
     Nostrum.Api.create_message(data.channel_id,
       embed: %Nostrum.Struct.Embed{
@@ -450,7 +448,7 @@ defmodule Game do
   end
 
   def handle_event(:enter, _event, :finished, data) do
-    Nostrum.Voice.stop(O2M.Application.from_env_to_int(:o2m, :guild))
+    Nostrum.Voice.stop(data.guild_id)
 
     Nostrum.Api.create_message(data.channel_id,
       embed: %Nostrum.Struct.Embed{

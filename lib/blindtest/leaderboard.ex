@@ -2,11 +2,12 @@ defmodule Leaderboard do
   @moduledoc """
   Interact with the leaderboard stored in dets file
   """
+  alias O2M.Config
 
   @top 15
 
   def set(id, points) do
-    path = to_charlist(Application.fetch_env!(:o2m, :bt_lboard_dets))
+    path = to_charlist(Config.get(:bt_lboard))
 
     {:ok, table} = :dets.open_file(path, type: :set)
     ret = :dets.insert(table, {id, points})
@@ -18,7 +19,7 @@ defmodule Leaderboard do
   def delta(id, points, fun) do
     old = get(id)
 
-    path = to_charlist(Application.fetch_env!(:o2m, :bt_lboard_dets))
+    path = to_charlist(Config.get(:bt_lboard))
     {:ok, table} = :dets.open_file(path, type: :set)
 
     ret =
@@ -36,7 +37,7 @@ defmodule Leaderboard do
   end
 
   def get(id) do
-    path = to_charlist(Application.fetch_env!(:o2m, :bt_lboard_dets))
+    path = to_charlist(Config.get(:bt_lboard))
     {:ok, table} = :dets.open_file(path, type: :set)
     ret = :dets.lookup(table, id)
     :dets.close(table)
@@ -51,7 +52,7 @@ defmodule Leaderboard do
   end
 
   def update(scores) do
-    path = to_charlist(Application.fetch_env!(:o2m, :bt_lboard_dets))
+    path = to_charlist(Config.get(:bt_lboard))
     {:ok, table} = :dets.open_file(path, type: :set)
 
     scores
@@ -70,7 +71,7 @@ defmodule Leaderboard do
   end
 
   def top() do
-    path = to_charlist(Application.fetch_env!(:o2m, :bt_lboard_dets))
+    path = to_charlist(Config.get(:bt_lboard))
     {:ok, table} = :dets.open_file(path, type: :set)
     scores = :dets.match_object(table, {:"$1", :"$2"})
     sorted = Enum.sort(scores, fn {_id1, v1}, {_id2, v2} -> v1 > v2 end)

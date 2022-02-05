@@ -7,8 +7,12 @@ defmodule O2M.Application do
   require Logger
   use DynamicSupervisor
   alias Nostrum.Api
+  alias O2M.Config
 
   def start(_type, _args) do
+    # Init the config, fail early
+    Config.init!()
+
     # DynamicSupervisor setup
     # Children spec
     children = [
@@ -19,31 +23,26 @@ defmodule O2M.Application do
     # Start Supervisor
     {:ok, _} = Supervisor.start_link(children, strategy: :one_for_one)
 
-    nickname = Application.fetch_env!(:o2m, :nickname)
-    gid = from_env_to_int(:o2m, :guild)
-
     # Custom Username
-    Api.modify_current_user(username: nickname)
-    Api.modify_current_user_nick!(gid, %{nick: nickname})
+    Api.modify_current_user(username: Config.get(:nickname))
+    Api.modify_current_user_nick!(Config.get(:guild), %{nick: Config.get(:nickname)})
 
-    # Add per feed jobs
-    case add_jobs() do
-      {:ok, urls} ->
-        Logger.info("#{length(urls)} job(s) started")
-
-      {:none, message} ->
-        Logger.warn(message)
+    if Config.get(:feed_urls) != "" do
+      {:ok, urls} = start_watchers(Config.get(:feed_urls))
+      Logger.info("#{length(urls)} watcher job(s) started")
+    else
+      Logger.info("No watcher jobs started")
     end
 
     # start the monitor in the dynamic supervisor
-    if BlindTest.configured?() do
+    if Config.get(:bt) do
       Logger.info("Starting game monitor")
 
       DynamicSupervisor.start_child(
         O2M.DynamicSupervisor,
         %{
           id: Game.Monitor,
-          start: {Game.Monitor, :start_link, [from_env_to_int(:o2m, :bt_chan)]},
+          start: {Game.Monitor, :start_link, [Config.get(:bt_chan)]},
           restart: :permanent,
           shutdown: 4000,
           type: :worker
@@ -72,36 +71,23 @@ defmodule O2M.Application do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
-  def from_env_to_int(app, val) do
-    {ret, ""} = Integer.parse(Application.fetch_env!(app, val))
-    ret
-  end
-
   # Generated jobs inside an enum for each podcast to watch
-  defp add_jobs() do
-    Logger.info("Application is starting per feed jobs")
+  defp start_watchers(urls) do
+    case String.split(urls, " ") do
+      [] ->
+        {:ok, []}
 
-    case Application.fetch_env(:o2m, :feed_urls) do
-      n when n in [{:ok, nil}, :error] ->
-        {:none, "There is no feed URL configured"}
+      urls ->
+        Enum.map(urls, fn e ->
+          Logger.info("Setting up feed job", url: e)
 
-      {:ok, conf} ->
-        case String.split(conf, " ") do
-          [] ->
-            {:none, "There is no URL configured"}
+          DynamicSupervisor.start_child(O2M.DynamicSupervisor, %{
+            id: "job-#{e}",
+            start: {Jobs, :start_link, [e]}
+          })
+        end)
 
-          urls ->
-            Enum.map(urls, fn e ->
-              Logger.info("Setting up feed job", url: e)
-
-              DynamicSupervisor.start_child(O2M.DynamicSupervisor, %{
-                id: "job-#{e}",
-                start: {Jobs, :start_link, [e]}
-              })
-            end)
-
-            {:ok, urls}
-        end
+        {:ok, urls}
     end
   end
 end

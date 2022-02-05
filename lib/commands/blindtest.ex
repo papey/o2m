@@ -5,6 +5,7 @@ defmodule O2M.Commands.Bt do
   import Discord
   require Logger
   alias Downloader.Yydl
+  alias O2M.Config
 
   @subcmds [
     "init",
@@ -48,11 +49,8 @@ defmodule O2M.Commands.Bt do
   Handle blind test init command
   """
   def init(args, msg) do
-    adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
-    guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
-
     with {:ok, _chan} <- is_chan_private(msg.channel_id),
-         {:ok} <- member_has_persmission(msg.author, adm, guild_id),
+         {:ok} <- member_has_persmission(msg.author, Config.get(:bt_admin), Config.get(:guild)),
          {:ok} <- BlindTest.ensure_not_running() do
       BlindTest.init(msg.attachments, msg.author, msg.channel_id, args)
     else
@@ -158,22 +156,19 @@ defmodule O2M.Commands.Bt do
   Handle players command
   """
   def players(_args, msg) do
-    guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
-
     with {:ok} <- BlindTest.ensure_running(),
          {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
       {:ok, players_id} = Game.get_players()
 
       if MapSet.size(players_id) != 0 do
         {:ok, author_id} = Game.get_author()
-        vocal_channel_id = O2M.Application.from_env_to_int(:o2m, :bt_vocal)
         me = Nostrum.Cache.Me.get()
 
         players_in_vocal =
-          guild_id
+          Config.get(:guild)
           |> Nostrum.Cache.GuildCache.get!()
           |> Map.get(:voice_states)
-          |> Enum.filter(fn v -> v.channel_id == vocal_channel_id end)
+          |> Enum.filter(fn v -> v.channel_id == Config.get(:bt_vocal) end)
           |> Enum.filter(fn v -> v.user_id != me.id && v.user_id != author_id end)
           |> Enum.map(fn v -> v.user_id end)
           |> MapSet.new()
@@ -227,11 +222,8 @@ defmodule O2M.Commands.Bt do
   Handle start command
   """
   def start(_args, msg) do
-    adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
-    guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
-
     with {:ok} <- BlindTest.ensure_running(),
-         {:ok} <- member_has_persmission(msg.author, adm, guild_id),
+         {:ok} <- member_has_persmission(msg.author, Config.get(:bt_admin), Config.get(:guild)),
          {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
       case Game.start_game() do
         {:ok, _} ->
@@ -361,11 +353,10 @@ defmodule O2M.Commands.Bt do
   Handle destroy command
   """
   def destroy(_args, msg) do
-    adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
-    guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
+    guild_id = Config.get(:guild)
 
     with {:ok} <- BlindTest.ensure_running(),
-         {:ok} <- member_has_persmission(msg.author, adm, guild_id),
+         {:ok} <- member_has_persmission(msg.author, Config.get(:bt_admin), guild_id),
          {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
       downloarder_pid = Process.whereis(Downloader.Worker)
       # kill downloader is any
@@ -485,10 +476,7 @@ defmodule O2M.Commands.Bt do
   end
 
   def lboard(["top" | _], msg) do
-    adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
-    guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
-
-    with {:ok} <- member_has_persmission(msg.author, adm, guild_id) do
+    with {:ok} <- member_has_persmission(msg.author, Config.get(:bt_admin), Config.get(:guild)) do
       reply =
         Leaderboard.top()
         |> Enum.with_index()
@@ -507,10 +495,7 @@ defmodule O2M.Commands.Bt do
   end
 
   def lboard(["set", _user, <<instruction::binary-size(1)>> <> points | _], msg) do
-    adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
-    guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
-
-    with {:ok} <- member_has_persmission(msg.author, adm, guild_id),
+    with {:ok} <- member_has_persmission(msg.author, Config.get(:bt_admin), Config.get(:guild)),
          {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
       case Integer.parse(points) do
         {val, _} ->
@@ -555,10 +540,8 @@ defmodule O2M.Commands.Bt do
   end
 
   def party(["reset" | _], msg) do
-    adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
-    guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
-
-    with {:ok} <- Discord.member_has_persmission(msg.author, adm, guild_id) do
+    with {:ok} <-
+           Discord.member_has_persmission(msg.author, Config.get(:bt_admin), Config.get(:guild)) do
       Party.reset()
       {:ok, "🙌  Party cleared  🙌"}
     else
@@ -672,14 +655,14 @@ defmodule O2M.Commands.Bt do
   end
 
   def events(["create", date | args], msg) do
-    adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
-    guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
+    guild_id = Config.get(:guild)
 
-    with {:ok} <- Discord.member_has_persmission(msg.author, adm, guild_id),
+    with {:ok} <-
+           Discord.member_has_persmission(msg.author, Config.get(:bt_admin), guild_id),
          {:ok, date} <- Timex.parse(date, "{YYYY}-{0M}-{D}@{h24}:{m}"),
-         with_tz <- Timex.to_datetime(date, "Europe/Paris") do
+         with_tz <- Timex.to_datetime(date, Config.get(:bt_events_tz)) do
       options = %{
-        channel_id: O2M.Application.from_env_to_int(:o2m, :bt_vocal),
+        channel_id: Config.get(:bt_vocal),
         scheduled_start_time: with_tz,
         privacy_level: 2,
         name: Enum.join(args, " "),
@@ -700,9 +683,7 @@ defmodule O2M.Commands.Bt do
   end
 
   def events(["list" | _], _msg) do
-    guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
-
-    case Nostrum.Api.get_guild_scheduled_events(guild_id) do
+    case Nostrum.Api.get_guild_scheduled_events(Config.get(:guild)) do
       {:ok, events} ->
         reply =
           case Enum.filter(events, fn event -> event.description == "🎸🤘🎼🎵" end) do
@@ -725,10 +706,10 @@ defmodule O2M.Commands.Bt do
   end
 
   def events(["start", id | _], msg) do
-    adm = O2M.Application.from_env_to_int(:o2m, :bt_admin)
-    guild_id = O2M.Application.from_env_to_int(:o2m, :guild)
+    guild_id = Config.get(:guild)
 
-    with {:ok} <- Discord.member_has_persmission(msg.author, adm, guild_id),
+    with {:ok} <-
+           Discord.member_has_persmission(msg.author, Config.get(:bt_admin), guild_id),
          {:ok} <- BlindTest.ensure_channel(msg.channel_id),
          {:ok, event} <- Nostrum.Api.get_guild_scheduled_event(guild_id, id),
          {:ok, players} <- Nostrum.Api.get_guild_scheduled_event_users(guild_id, event.id) do
@@ -768,7 +749,7 @@ defmodule O2M.Commands.Bt do
   Handle and route blind-test subcommands
   """
   def handle(sub, args, msg) do
-    if BlindTest.configured?(),
+    if O2M.Config.get(:bt),
       do: do_handle(sub, args, msg),
       else: {:error, "Blind test is **not configured** on this Discord Guild 😢"}
   end

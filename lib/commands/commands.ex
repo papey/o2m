@@ -80,13 +80,11 @@ defmodule O2M.Commands do
     """
 
     def handle(_, _, _) do
-      {:ok, prefix} = Application.fetch_env(:o2m, :prefix)
-
       reply = "**Commands**
-Using prefix `#{prefix}` :
+Using prefix `#{O2M.Config.get(:prefix)}` :
 - mo : to interact with metalorgie website and database
 - tmpl : to interact with announcement templates
-- bt : to interact with blind tests (configured: **#{BlindTest.configured?()}**)
+- bt : to interact with blind tests (configured: **#{O2M.Config.get(:bt)}**)
 - help : to get this help message
 
 **Emojis**
