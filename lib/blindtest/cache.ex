@@ -2,6 +2,7 @@ defmodule Cache do
   @moduledoc """
   Module used to get data from filesystem to data playable by Nostrum
   """
+  alias O2M.Config
 
   @doc """
   Get a file using it's id
@@ -10,7 +11,7 @@ defmodule Cache do
   """
   def path(uuid) do
     cache =
-      Application.fetch_env!(:o2m, :bt_cache)
+      Config.get(:bt_cache)
       |> String.trim_trailing("/")
 
     file =
@@ -31,7 +32,7 @@ defmodule Cache do
   """
   def clean() do
     cache =
-      Application.fetch_env!(:o2m, :bt_cache)
+      Config.get(:bt_cache)
       |> String.trim_trailing("/")
 
     files = File.ls!(cache)

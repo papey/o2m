@@ -5,6 +5,7 @@ defmodule Jobs do
   use GenServer
   require Logger
   alias Nostrum.Api
+  alias O2M.Config
 
   ## GenServer API
   @doc """
@@ -43,18 +44,9 @@ defmodule Jobs do
     {:noreply, state, {:continue, :work}}
   end
 
-  @doc """
-  Get timer config from `config.exs` file
-
-  Returns timer configuration
-  """
-  def get_timer_config() do
-    O2M.Application.from_env_to_int(:o2m, :timer)
-  end
-
   defp work_then_reschedule({url, state}) do
     # Wait
-    Process.send_after(self(), :work, get_timer_config() * 1000)
+    Process.send_after(self(), :work, Config.get(:jobs_timer) * 1000)
 
     # Get last episode from feed
     next =
@@ -73,7 +65,7 @@ defmodule Jobs do
     if Feed.compare_dates(old.date, new.date) == -1 do
       # Post a message
       Api.create_message(
-        O2M.Application.from_env_to_int(:o2m, :chan),
+        Config.get(:chan),
         Feed.new_message(new)
       )
 

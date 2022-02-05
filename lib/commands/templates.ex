@@ -1,6 +1,7 @@
 defmodule O2M.Commands.Tmpl do
   require Logger
   import Announcements
+  alias O2M.Config
 
   @moduledoc """
   An module handle call to an command
@@ -123,9 +124,9 @@ defmodule O2M.Commands.Tmpl do
 
   def help([]) do
     reply = "Available **tmpl** subcommands are :
-    - **add**: to add an announcement template (try _#{Application.fetch_env!(:o2m, :prefix)}tmpl help add_)
-    - **list**: to list templates (try _#{Application.fetch_env!(:o2m, :prefix)}tmpl help list_)
-    - **delete**: to delete a specific template (try _#{Application.fetch_env!(:o2m, :prefix)}tmpl help delete_)
+    - **add**: to add an announcement template (try _#{Config.get(:prefix)}tmpl help add_)
+    - **list**: to list templates (try _#{Config.get(:prefix)}tmpl help list_)
+    - **delete**: to delete a specific template (try _#{Config.get(:prefix)}tmpl help delete_)
     - **help**: to get this help message"
     {:ok, reply}
   end
@@ -134,13 +135,13 @@ defmodule O2M.Commands.Tmpl do
     reply =
       case Enum.join(args, " ") do
         "add" ->
-          "Here is an example of \`add\` subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}tmpl add #[show] just publish a new episode #[title], check it at #[url]\`\`\`"
+          "Here is an example of \`add\` subcommand : \`\`\`#{Config.get(:prefix)}tmpl add #[show] just publish a new episode #[title], check it at #[url]\`\`\`"
 
         "list" ->
-          "Here is an example of \`list\` subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}tmpl list\`\`\`"
+          "Here is an example of \`list\` subcommand : \`\`\`#{Config.get(:prefix)}tmpl list\`\`\`"
 
         "delete" ->
-          "Here is an example of \`delete\` subcommand, using ID from list subcommand : \`\`\`#{Application.fetch_env!(:o2m, :prefix)}tmpl delete acfe\`\`\`"
+          "Here is an example of \`delete\` subcommand, using ID from list subcommand : \`\`\`#{Config.get(:prefix)}tmpl delete acfe\`\`\`"
 
         sub ->
           "Help for subcommand #{sub} not available"

@@ -50,9 +50,7 @@ defmodule BlindTest do
   def init([], _, _), do: {:error, "No attachements found in this message"}
 
   def init(attachements, author, from_channel, args) do
-    guild = O2M.Application.from_env_to_int(:o2m, :guild)
-    channel_id = O2M.Application.from_env_to_int(:o2m, :bt_chan)
-    cache = Application.get_env(:o2m, :bt_cache)
+    channel_id = O2M.Config.get(:bt_chan)
 
     with {:ok, file} <- find_songs_attachement(attachements),
          {:ok, resp} <- Tesla.get(file.url),
@@ -71,8 +69,10 @@ defmodule BlindTest do
 
       {:ok, _} =
         Game.start(
-          {author.id, guild, channel_id, file.url, playlist_name, config, party_players},
-          {guess_entries, cache, channel_id, from_channel, config.guess_duration}
+          {author.id, O2M.Config.get(:guild), channel_id, file.url, playlist_name, config,
+           party_players},
+          {guess_entries, O2M.Config.get(:bt_cache), channel_id, from_channel,
+           config.guess_duration}
         )
 
       {:ok, "__Download worker started__ : #{length(guess_entries)} song(s) to download"}
@@ -377,13 +377,11 @@ defmodule BlindTest do
   end
 
   def ensure_channel(channel_id) do
-    bt_chan_id = O2M.Application.from_env_to_int(:o2m, :bt_chan)
-
-    if bt_chan_id == channel_id,
+    if O2M.Config.get(:bt_chan) == channel_id,
       do: {:ok},
       else:
         {:error,
-         "To use this command, you have to interact with blind test in channel #{Discord.channel(bt_chan_id)}"}
+         "To use this command, you have to interact with blind test in channel #{Discord.channel(O2M.Config.get(:bt_chan))}"}
   end
 
   def handle_message(msg, channel_id) do
@@ -449,21 +447,5 @@ defmodule BlindTest do
       {:one, pid} -> Process.exit(pid, :kill)
       _ -> nil
     end
-  end
-
-  @doc """
-  Check if blind test is fully configured
-
-  Return true if configured, false otherwise
-  """
-  def configured?() do
-    vars = [:bt_admin, :bt_chan, :bt_vocal]
-
-    configured =
-      Enum.take_while(vars, fn var ->
-        Application.fetch_env!(:o2m, var) != nil
-      end)
-
-    length(vars) == length(configured)
   end
 end

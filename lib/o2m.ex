@@ -2,6 +2,7 @@ defmodule O2M do
   @moduledoc """
   A simple Elixir module based on Nostrum to interact with Discord
   """
+  alias O2M.Config
 
   # This is a Nostrum Consumer
   use Nostrum.Consumer
@@ -22,11 +23,8 @@ defmodule O2M do
   def handle_event({:MESSAGE_CREATE, msg, _ws_state}) when msg.author.bot, do: :ignore
 
   def handle_event({:MESSAGE_CREATE, msg, _ws_state}) do
-    # fetch prefix
-    {:ok, prefix} = Application.fetch_env(:o2m, :prefix)
-
     msg
-    |> enrich_message(prefix)
+    |> enrich_message(Config.get(:prefix))
     |> handle_message()
   end
 
@@ -49,7 +47,7 @@ defmodule O2M do
   def handle_message({:msg, msg}) when msg.content == "", do: :ignore
 
   def handle_message({:msg, msg}),
-    do: BlindTest.handle_message(msg, O2M.Application.from_env_to_int(:o2m, :bt_chan))
+    do: BlindTest.handle_message(msg, Config.get(:bt_chan))
 
   def handle_reaction(reaction) do
     case reaction.emoji.name do
