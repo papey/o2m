@@ -34,6 +34,7 @@ defmodule O2M.Config do
     :ets.new(:config_lookup, [:set, :protected, :named_table])
 
     insert!(@base)
+    insert!({:bt, false})
 
     if blindtest?() do
       insert!(@bt)
