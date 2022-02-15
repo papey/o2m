@@ -32,7 +32,7 @@ defmodule BlindTest do
               both_scoring: 8,
               guess_duration: 45,
               transition_duration: 15,
-              error_treshold: 0.2
+              error_threshold: 0.2
   end
 
   def check([], _, _), do: {:error, "No attachements found in this message"}
