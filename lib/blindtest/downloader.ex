@@ -30,9 +30,6 @@ defmodule Downloader do
     Ytdl is a simple module used to try and retry youtube-dl command
     """
 
-    # fake UA, use Internet Explorer 7
-    @user_agent "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)"
-
     @max_retry 3
     @timer 1 * 200
 
@@ -98,8 +95,6 @@ defmodule Downloader do
       case System.cmd("youtube-dl", [
              "--youtube-skip-dash-manifest",
              "--hls-prefer-native",
-             "--user-agent",
-             @user_agent,
              "-g",
              "-f",
              "bestaudio",
