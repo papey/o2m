@@ -150,7 +150,7 @@ defmodule Game do
     current_guess = data.current_guess
 
     status =
-      case verify_answer(current_guess.entry, answer, data.config.error_treshold) do
+      case verify_answer(current_guess.entry, answer, data.config.error_threshold) do
         :f2 ->
           (!current_guess.f2_found && :f2) || :already
 
