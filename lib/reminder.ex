@@ -43,10 +43,14 @@ defmodule Reminder do
 
   def delete(reaction) do
     with {:ok, origin} <-
-           Nostrum.Api.get_channel_message(reaction.channel_id, reaction.message_id),
-         {:ok, _chan} <- Discord.is_chan_private(origin.channel_id) do
-      if origin.author.bot,
-        do: Nostrum.Api.delete_message(reaction.channel_id, reaction.message_id)
+           Nostrum.Api.get_channel_message(reaction.channel_id, reaction.message_id) do
+      case {Discord.is_chan_private(origin.channel_id), origin.author.bot} do
+        {{:ok, _chan}, true} ->
+          Nostrum.Api.delete_message(reaction.channel_id, reaction.message_id)
+
+        _ ->
+          :noop
+      end
     else
       {:error, reason} ->
         Nostrum.Api.create_message(reaction.channel_id, "**Error**: _#{reason}_")
