@@ -55,8 +55,8 @@ RUN apt-get update -y \
     python3 \
     python3-pip
 
-# Install latest youtube-dl from pip
-RUN pip3 install youtube-dl
+# Install latest youtube-dl from github
+RUN pip3 install https://github.com/ytdl-org/youtube-dl/archive/master.zip
 
 # Copy over the build artifact from the previous step and create a non root user
 RUN useradd o2m
