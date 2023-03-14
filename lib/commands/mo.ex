@@ -22,6 +22,9 @@ defmodule O2M.Commands.Mo do
 
       "teuton" ->
         {:ok, "https://www.youtube.com/watch?v=WmlshlqXD54"}
+      
+      "beluga" ->
+        {:ok, "https://www.youtube.com/watch?v=H0WyhJseftI"}
 
       _ ->
         {:error, "Sorry but subcommand **#{sub}** of command **mo** is not supported"}
