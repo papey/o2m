@@ -35,17 +35,11 @@ defmodule Discord do
   Returns an atom indicating role membership
   """
   def member_has_persmission(user, rid, gid) do
-    with {:ok, guild} <- Nostrum.Cache.GuildCache.get(gid) do
-      case Map.get(guild.members, user.id) do
-        nil ->
-          {:error, "User #{user.username} not found in guild #{gid}"}
-
-        m ->
-          if Enum.member?(m.roles(), rid) do
-            {:ok}
-          else
-            {:error, "User #{mention(user.id)} do not have the required permission"}
-          end
+    with {:ok, member} <- Nostrum.Cache.MemberCache.get(gid, user.id) do
+      if Enum.member?(member.roles(), rid) do
+        {:ok}
+      else
+        {:error, "User #{mention(user.id)} do not have the required permission"}
       end
     else
       error -> error
