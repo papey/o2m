@@ -13,7 +13,7 @@ defmodule Feed do
   def get_last_episode(url) do
     # Get rss feed
     url
-    |> Tesla.get()
+    |> HTTPoison.get()
     |> handle_resp(url)
   end
 

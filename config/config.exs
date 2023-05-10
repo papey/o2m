@@ -30,8 +30,3 @@ config :logger, :console,
     :message
   ],
   level: :info
-
-config :porcelain,
-  driver: Porcelain.Driver.Basic
-
-config :tesla, adapter: Tesla.Adapter.Hackney

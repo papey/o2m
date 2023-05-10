@@ -28,12 +28,12 @@ defmodule O2M.MixProject do
   defp deps do
     [
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
-      {:nostrum, "0.6.1"},
+      {:nostrum, "0.7.0-rc2"},
       {:elixir_feed_parser, "~> 0.0.1"},
       {:timex, "~> 3.7"},
       {:jason, "~> 1.3"},
-      {:tesla, "~> 1.4"},
       {:hackney, "~> 1.17"},
+      {:httpoison, "~> 2.1.0"},
       {:gen_state_machine, "~> 3.0.0"}
     ]
   end
