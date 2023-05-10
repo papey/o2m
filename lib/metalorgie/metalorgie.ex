@@ -34,7 +34,7 @@ defmodule Metalorgie do
 
     # HTTP get call
     resp =
-      Tesla.get!(
+      HTTPoison.get!(
         Metalorgie.get_config_url() <>
           "/api/band.php" <>
           "?filter=[%7B\"property\":\"name\",\"value\":\"#{Enum.join(terms, "%20")}\"%7D]"

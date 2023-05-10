@@ -39,7 +39,7 @@ defmodule BlindTest do
 
   def check(attachements) do
     with {:ok, file} <- find_songs_attachement(attachements),
-         {:ok, resp} <- Tesla.get(file.url),
+         {:ok, resp} <- HTTPoison.get(file.url),
          {:ok, {_, guess_entries}} <- parse_csv(resp.body) do
       {:ok, {file.filename, guess_entries}}
     else
@@ -53,7 +53,7 @@ defmodule BlindTest do
     channel_id = O2M.Config.get(:bt_chan)
 
     with {:ok, file} <- find_songs_attachement(attachements),
-         {:ok, resp} <- Tesla.get(file.url),
+         {:ok, resp} <- HTTPoison.get(file.url),
          {:ok, {config, guess_entries}} <- parse_csv(resp.body),
          {:ok, _} <-
            Nostrum.Api.create_message(

@@ -30,5 +30,3 @@ config :logger, :console,
     :message
   ],
   level: :info
-
-config :tesla, adapter: Tesla.Adapter.Hackney
