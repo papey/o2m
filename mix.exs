@@ -4,7 +4,7 @@ defmodule O2M.MixProject do
   def project do
     [
       app: :o2m,
-      version: "0.12.12",
+      version: "0.12.13",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
