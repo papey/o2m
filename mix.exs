@@ -29,12 +29,13 @@ defmodule O2M.MixProject do
     [
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
       {:nostrum, "0.7.0"},
-      {:elixir_feed_parser, "~> 0.0.1"},
+      {:elixir_feed_parser, "~> 2.1"},
       {:timex, "~> 3.7"},
       {:jason, "~> 1.3"},
       {:hackney, "~> 1.17"},
       {:httpoison, "~> 2.1.0"},
-      {:gen_state_machine, "~> 3.0.0"}
+      {:gen_state_machine, "~> 3.0.0"},
+      {:ssl_verify_fun, ">= 1.1.7"}
     ]
   end
 end

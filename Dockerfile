@@ -1,6 +1,6 @@
 # From latest elixir version
 # First build the app
-FROM elixir:1.14 as builder
+FROM elixir:1.15 as builder
 
 RUN apt-get update && apt-get install -y openssl
 
@@ -44,7 +44,7 @@ COPY . .
 RUN mix release
 
 # App is build, setup runtime
-FROM elixir:1.14 AS runtime
+FROM elixir:1.15 AS runtime
 
 # Install openssl
 RUN apt-get update -y \
