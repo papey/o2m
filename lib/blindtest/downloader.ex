@@ -27,7 +27,7 @@ defmodule Downloader do
 
   defmodule Yydl do
     @moduledoc """
-    Ytdl is a simple module used to try and retry youtube-dl command
+    Ytdl is a simple module used to try and retry yt-dlp command
     """
 
     @max_retry 3
@@ -90,9 +90,9 @@ defmodule Downloader do
         :timer.sleep(@timer)
       end
 
-      System.cmd("youtube-dl", ["--rm-cache-dir"])
+      System.cmd("yt-dlp", ["--rm-cache-dir"])
 
-      case System.cmd("youtube-dl", [
+      case System.cmd("yt-dlp", [
              "--youtube-skip-dash-manifest",
              "--hls-prefer-native",
              "-g",
