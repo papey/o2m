@@ -17,8 +17,8 @@ defmodule Feed do
     |> handle_resp(url)
   end
 
-  defp handle_resp({:ok, resp}, _url) when resp.status == 200 do
-    xml = ElixirFeedParser.parse(resp.body)
+  defp handle_resp({:ok, resp}, _url) when resp.status_code == 200 do
+    {:ok, xml} = ElixirFeedParser.parse(resp.body)
 
     # Get last episode
     [last | _] = xml.entries
@@ -38,33 +38,6 @@ defmodule Feed do
   defp handle_resp({:error, reason}, url) do
     Logger.error("Error getting last episode", url: url, reason: reason)
     :nodata
-  end
-
-  @doc """
-  Compare to dates, is the second one is after the first one return `true` else return `false`
-
-  Returns `true` or `false`
-
-  ## Examples
-
-      iex> Feed.compare_dates("Tue, 15 Oct 2019 15:00:00 +0000", "Wed, 16 Oct 2019 15:00:00 +0000")
-      -1
-  """
-  def compare_dates(cur, next) do
-    # Anchor dates contains GMT
-    case String.contains?(cur, "GMT") && String.contains?(next, "GMT") do
-      true ->
-        # This is an Anchor podcast, parse it using Anchor syntax
-        cur = Timex.parse!(cur, "%a, %d %b %Y %H:%M:%S GMT", :strftime)
-        next = Timex.parse!(next, "%a, %d %b %Y %H:%M:%S GMT", :strftime)
-        Timex.compare(cur, next)
-
-      false ->
-        # This is a Ausha podcast, parse it using Ausha syntax
-        cur = Timex.parse!(cur, "%a, %d %b %Y %H:%M:%S %z", :strftime)
-        next = Timex.parse!(next, "%a, %d %b %Y %H:%M:%S %z", :strftime)
-        Timex.compare(cur, next)
-    end
   end
 
   @doc """
