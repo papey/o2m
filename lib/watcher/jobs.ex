@@ -62,7 +62,7 @@ defmodule Jobs do
   defp refresh_state(new, :nodata), do: new
 
   defp refresh_state(new, old) do
-    if Feed.compare_dates(old.date, new.date) == -1 do
+    if Timex.compare(old.date, new.date) == -1 do
       # Post a message
       Api.create_message(
         Config.get(:chan),
