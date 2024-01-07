@@ -80,7 +80,7 @@ defmodule Announcements do
 
       false ->
         # if not, fallback to a default one
-        Logger.warn("Invalid template, fallback to default", template: template)
+        Logger.warning("Invalid template, fallback to default", template: template)
         replace(@mandatory, @default, data)
     end
   end
@@ -138,7 +138,7 @@ defmodule Announcements do
           ret
 
         _ ->
-          Logger.warn(
+          Logger.warning(
             "Template not added to storage, you've reached the limit of #{@limit} templates",
             template: template
           )
