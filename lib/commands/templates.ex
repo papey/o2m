@@ -124,10 +124,10 @@ defmodule O2M.Commands.Tmpl do
 
   def help([]) do
     reply = "Available **tmpl** subcommands are :
-    - **add**: to add an announcement template (try _#{Config.get(:prefix)}tmpl help add_)
-    - **list**: to list templates (try _#{Config.get(:prefix)}tmpl help list_)
-    - **delete**: to delete a specific template (try _#{Config.get(:prefix)}tmpl help delete_)
-    - **help**: to get this help message"
+    **add**: to add an announcement template (try _#{Config.get(:prefix)}tmpl help add_)
+    **list**: to list templates (try _#{Config.get(:prefix)}tmpl help list_)
+    **delete**: to delete a specific template (try _#{Config.get(:prefix)}tmpl help delete_)
+    **help**: to get this help message"
     {:ok, reply}
   end
 

@@ -178,7 +178,7 @@ defmodule O2M.Commands.Bt do
             MapSet.to_list(players_id),
             "**Player(s) in this session (#{MapSet.size(players_id)}) :**\n",
             fn elem, acc ->
-              "#{acc}\n\t- #{mention(elem)}"
+              "#{acc}\n\t #{mention(elem)}"
             end
           )
 
@@ -193,7 +193,7 @@ defmodule O2M.Commands.Bt do
             |> MapSet.to_list()
             |> Enum.reduce(
               "**Missing player(s) from vocal channel :**\n",
-              fn elem, acc -> "#{acc}\n\t- #{mention(elem)}" end
+              fn elem, acc -> "#{acc}\n\t #{mention(elem)}" end
             )
           end
 
@@ -205,7 +205,7 @@ defmodule O2M.Commands.Bt do
             |> MapSet.to_list()
             |> Enum.reduce(
               "**Missing player(s) in vocal channel :**\n",
-              fn elem, acc -> "#{acc}\n\t- #{mention(elem)}" end
+              fn elem, acc -> "#{acc}\n\t #{mention(elem)}" end
             )
           end
 
@@ -389,48 +389,48 @@ defmodule O2M.Commands.Bt do
 
     __Administration commands__ (requires privileges)
 
-    - **init**: init a new blind test, message should be a private message to the bot with a `.csv` file attached to it (`csv format: youtube.com/link,artist,title`)
-    - **start**: starts the blind test if ready
-    - **destroy**: destroy the running blind test
+    **init**: init a new blind test, message should be a private message to the bot with a `.csv` file attached to it (`csv format: youtube.com/link,artist,title`)
+    **start**: starts the blind test if ready
+    **destroy**: destroy the running blind test
 
     __Players commands__ (only in dedicated bind test text channel)
 
-    - **join**: join a blind test
-    - **leave**: leave current blind test
-    - **players**: list all players for this session
-    - **pass**: when guessing a song, ask for skipping current guess
-    - **ranking**: list current ranking for this session
-    - **status**: fetch blind test status
+    **join**: join a blind test
+    **leave**: leave current blind test
+    **players**: list all players for this session
+    **pass**: when guessing a song, ask for skipping current guess
+    **ranking**: list current ranking for this session
+    **status**: fetch blind test status
 
     __Events commands__ (requires privileges)
 
-    - **events list**: list blind test events
-    - **events create date@time name**: date format YYYY-MM-DD@hh:mm eg 2022-01-29@21:00
-    - **events start id**: get the ID from the `list` command
+    **events list**: list blind test events
+    **events create date@time name**: date format YYYY-MM-DD@hh:mm eg 2022-01-29@21:00
+    **events start id**: get the ID from the `list` command
 
     __Party commands__
 
-    - **party join**: join this party
-    - **party leave**: leave this party
-    - **party players**: list players in this party
-    - **party overview**: get an overview of the current party
-    - **party list**: list all the games for this party
-    - **party get <ID>**: get data about a specific game
-    - **party reset**: reset party data [admin]
+    **party join**: join this party
+    **party leave**: leave this party
+    **party players**: list players in this party
+    **party overview**: get an overview of the current party
+    **party list**: list all the games for this party
+    **party get <ID>**: get data about a specific game
+    **party reset**: reset party data [admin]
 
     __Leaderboard commands__
 
-    - **lboard top**: print top 15 leaderboard
-    - **lboard set @user +<value>**: add value to @user score [admin]
-    - **lboard set @user -<value>**: substract value to @user score [admin]
-    - **lboard set @user =<value>**: set @user score to value [admin]
-    - **lboard get**: get asking user score
+    **lboard top**: print top 15 leaderboard
+    **lboard set @user +<value>**: add value to @user score [admin]
+    **lboard set @user -<value>**: substract value to @user score [admin]
+    **lboard set @user =<value>**: set @user score to value [admin]
+    **lboard get**: get asking user score
 
     __Help commands__
 
-    - **rules**: print rules and various informations about blind test
-    - **help**: to get this help message
-    - **check**: to check if a blindtest playlist is valid
+    **rules**: print rules and various informations about blind test
+    **help**: to get this help message
+    **check**: to check if a blindtest playlist is valid
 
     __How to guide__ : https://github.com/papey/o2m/wiki"
 

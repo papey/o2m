@@ -527,7 +527,7 @@ defmodule Game do
     |> Enum.reduce(
       "",
       fn {{user, score}, index}, acc ->
-        "#{acc}\n#{index + 1} | #{Discord.mention(user)} - **#{score}** point(s)#{if index + 1 <= 3,
+        "#{acc}\n#{String.pad_leading(index + 1, 3, " ")} | #{Discord.mention(user)} - **#{score}** point(s)#{if index + 1 <= 3,
           do: " - #{Map.get(@medals, index + 1)}"}"
       end
     )

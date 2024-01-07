@@ -78,9 +78,9 @@ defmodule O2M.Commands.Mo do
   """
   def help([]) do
     reply = "Available **mo** subcommands are :
-    - **album**: to get album info (try _#{Config.get(:prefix)}mo help album_)
-    - **band**: to get page band info (try _#{Config.get(:prefix)}mo help band_)
-    - **help**: to get this help message"
+    **album**: to get album info (try _#{Config.get(:prefix)}mo help album_)
+    **band**: to get page band info (try _#{Config.get(:prefix)}mo help band_)
+    **help**: to get this help message"
 
     {:ok, reply}
   end
