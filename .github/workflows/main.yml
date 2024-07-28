@@ -1,0 +1,94 @@
+name: Build & Test
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '*'
+  pull_request:
+    branches: 
+      - "master"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Elixir
+      uses: erlef/setup-beam@61e01a43a562a89bfc54c7f9a378ff67b03e4a21 # v1.16.0
+      with:
+        elixir-version: '1.17'
+        otp-version: '26.0'
+
+    - name: Install dependencies
+      run: mix deps.get
+      
+    - name: Build
+      run: mix compile
+
+  test: 
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Elixir
+      uses: erlef/setup-beam@61e01a43a562a89bfc54c7f9a378ff67b03e4a21 # v1.16.0
+      with:
+        elixir-version: '1.17'
+        otp-version: '26.0'
+
+    - name: Install dependencies
+      run: mix deps.get
+      
+    - name: Test
+      run: mix test --no-start
+
+  container:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Resolve image tag
+        id: tag
+        run: |
+          if [[ "${{ github.ref }}" =~ "refs/tags/" ]]; then
+            TAG=${{ github.ref_name }}
+          else
+            TAG="latest"
+          fi
+          echo "TAG=${TAG}" >> $GITHUB_ENV
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: papey/o2m:${{ env.TAG }}
+          labels: |
+            org.opencontainers.image.source=${{ github.event.repository.clone_url }} 
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}            
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ env.TAG }}
+            org.opencontainers.image.authors="Wilfried OLLIVIER"
+            org.opencontainers.image.title="trostani"
+            org.opencontainers.image.description=${{ github.event.repository.description }} 
+            org.opencontainers.image.licences="Unlicense"
