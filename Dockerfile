@@ -4,22 +4,8 @@ FROM elixir:1.17 as builder
 
 RUN apt-get update && apt-get install -y openssl
 
-# Declare args
-ARG REVISION
-ARG RELEASE_TAG
-
 # Ensure mix is in prod mode
 ENV MIX_ENV=prod
-
-# image-spec annotations using labels
-# https://github.com/opencontainers/image-spec/blob/master/annotations.md
-LABEL org.opencontainers.image.source="https://github.com/papey/o2m"
-LABEL org.opencontainers.image.revision=${GIT_COMMIT_SHA}
-LABEL org.opencontainers.image.version=${RELEASE_TAG}
-LABEL org.opencontainers.image.authors="Wilfried OLLIVIER"
-LABEL org.opencontainers.image.title="o2m"
-LABEL org.opencontainers.image.description="o2m runtime"
-LABEL org.opencontainers.image.licences="Unlicense"
 
 # Create src dir
 RUN mkdir /opt/o2m
@@ -52,11 +38,8 @@ RUN apt-get update -y \
     && apt-get install -y openssl \
     libtinfo-dev \
     ffmpeg \
-    python3 \
-    python3-pip
+    pipx
 
-# Install latest yt-dlp from github
-RUN pip3 install yt-dlp
 
 # Copy over the build artifact from the previous step and create a non root user
 RUN useradd o2m
@@ -73,6 +56,11 @@ COPY --from=builder /opt/o2m/_build .
 RUN chown -R o2m:o2m ./prod
 
 USER o2m
+
+# Install latest yt-dlp from github
+RUN pipx install yt-dlp
+
+ENV PATH="${HOME}/.local/bin:${PATH}" 
 
 # default arg
 CMD ["start"]
