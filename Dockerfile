@@ -1,6 +1,6 @@
 # From latest elixir version
 # First build the app
-FROM elixir:1.16 as builder
+FROM elixir:1.17 as builder
 
 RUN apt-get update && apt-get install -y openssl
 
