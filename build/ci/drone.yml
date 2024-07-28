@@ -3,7 +3,7 @@ name: main
 
 steps:
   - name: compile
-    image: elixir:1.13
+    image: elixir:1.17
     commands:
       - mix local.hex --force
       - mix local.rebar --force
@@ -11,7 +11,7 @@ steps:
       - mix compile
 
   - name: tests
-    image: elixir:1.13
+    image: elixir:1.17
     environment:
       DISCORD_TOKEN:
         from_secret: discord_token
