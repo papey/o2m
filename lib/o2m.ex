@@ -53,6 +53,7 @@ defmodule O2M do
     case reaction.emoji.name do
       "📌" -> Reminder.remind(reaction)
       "👀" -> Reminder.delete(reaction)
+      "🔗" -> StreamingFinder.handle(reaction)
       _ -> :ignore
     end
   end
