@@ -88,6 +88,7 @@ Using prefix `#{O2M.Config.get(:prefix)}` :
 - help : to get this help message
 
 **Emojis**
+- 🔗 : find links for all streaming plateforms from the resources linked in the message content
 - 📌 : add this emoji as a reaction to pin a public message in order to get a private reminder about the pinned message
 - 👀️️ : in your private channel with the bot add this emoji as a reaction to delete a bot message"
       {:ok, reply}
