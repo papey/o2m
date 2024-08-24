@@ -5,12 +5,14 @@ defmodule Odesli do
 
   @platforms ["spotify", "deezer", "appleMusic", "youtube", "bandcamp", "tidal"]
 
+  @timeout 20_000
+
   defmodule Response do
     defstruct [:artist, :title, :urls]
   end
 
   def get(url) do
-    {:ok, resp} = HTTPoison.get("#{@links_url}?#{URI.encode_query(%{url: url})}")
+    {:ok, resp} = HTTPoison.get("#{@links_url}?#{URI.encode_query(%{url: url})}", [], timeout: @timeout, recv_timout: @timeout)
 
     case resp do
       %HTTPoison.Response{status_code: 200} ->
