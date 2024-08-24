@@ -5,7 +5,7 @@ defmodule Odesli do
 
   @platforms ["spotify", "deezer", "appleMusic", "youtube", "bandcamp", "tidal"]
 
-  @timeout 20_000
+  @timeout :timer.minutes(0.5)
 
   defmodule Response do
     defstruct [:artist, :title, :urls]
