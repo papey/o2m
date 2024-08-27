@@ -12,11 +12,10 @@ defmodule StreamingFinder do
       urls ->
         for url <- urls |> Enum.take(@max_urls) do
           case Odesli.get(url) do
-            {:ok, %Odesli.Response{artist: artist, title: title, urls: urls}} ->
-              Odesli.get(url)
-
-              Nostrum.Api.create_message(origin.channel_id,
-                embed: message(artist, title, urls),
+            {:ok, %Odesli.Response{id: id, type: type, provider: provider}} ->
+              Nostrum.Api.create_message(
+                origin.channel_id,
+                content: message(type, id, provider),
                 message_reference: %{message_id: origin.id}
               )
 
@@ -27,19 +26,8 @@ defmodule StreamingFinder do
     end
   end
 
-  defp message(artist, title, urls) do
-    formatted_links =
-      urls
-      |> Enum.map(fn {platform, url} ->
-        "[#{String.capitalize(platform)}](<#{url}>)"
-      end)
-      |> Enum.join(" - ")
-
-    %Nostrum.Struct.Embed{
-      :title => "#{artist} - #{title}",
-      :color => 431_948,
-      :description => formatted_links
-    }
+  defp message(type, id, provider) do
+    "https://#{type}.link/#{String.first(provider)}/#{id}"
   end
 
   defp extract_urls(content) do
