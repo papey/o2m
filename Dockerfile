@@ -60,7 +60,7 @@ USER o2m
 # Install latest yt-dlp from github
 RUN pipx install yt-dlp
 
-ENV PATH="${HOME}/.local/bin:${PATH}" 
+ENV PATH="/home/o2m/.local/bin:${PATH}"
 
 # default arg
 CMD ["start"]
