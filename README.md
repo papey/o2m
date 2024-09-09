@@ -83,6 +83,7 @@ Using a set of emojis, adding a reaction to messages trigger bot commands.
 
 - 📌 to add a pointer and reminder to a message send on a public channel
 - 👀️ to delete a bot private message (only available in bot private channel)
+- 🔗 to generate Odesli link from a message containing a streaming platform song or album
 
 #### Notes on Discord permissions
 
