@@ -469,7 +469,7 @@ defmodule Game do
 
     Party.add_game(%Party.GameResult{name: data.name, scores: data.scores})
 
-    Nostrum.Api.create_message(data.channel_id, generate_ranking(data.scores))
+    Nostrum.Api.create_message(data.channel_id, "`#{data.name}` ranking:\n#{generate_ranking(data.scores)}")
 
     :keep_state_and_data
   end
@@ -527,7 +527,7 @@ defmodule Game do
     |> Enum.reduce(
       "",
       fn {{user, score}, index}, acc ->
-        "#{acc}\n#{String.pad_leading(index + 1, 3, " ")} | #{Discord.mention(user)} - **#{score}** point(s)#{if index + 1 <= 3,
+        "#{acc}\n#{String.pad_leading(Integer.to_string(index + 1), 3, " ")} | #{Discord.mention(user)} - **#{score}** point(s)#{if index + 1 <= 3,
           do: " - #{Map.get(@medals, index + 1)}"}"
       end
     )
