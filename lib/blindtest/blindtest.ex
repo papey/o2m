@@ -170,17 +170,9 @@ defmodule BlindTest do
       fn {l, i}, {:ok, {conf, acc}} ->
         # skips comments and emtpy lines
         if !String.starts_with?(l, "#") and l != "" do
-          case String.replace(l, "\"", "") |> String.split(",") do
-            ["!customize" | args] ->
-              case Enum.reduce_while(args, {:ok, %Config{}}, fn kv, {:ok, config} ->
-                     case parse_custom_kv(kv) do
-                       {:ok, {k, v}} ->
-                         {:cont, {:ok, Map.put(config, k, v)}}
-
-                       err ->
-                         {:halt, err}
-                     end
-                   end) do
+          case sanitize_playlist_line(l) do
+            ["!customize" | config_kv] ->
+              case parse_config_line(config_kv) do
                 {:ok, config} ->
                   {:cont, {:ok, {config, acc}}}
 
@@ -200,18 +192,14 @@ defmodule BlindTest do
                 length(acc) > @playlist_size_limit ->
                   {:halt, {:error, "Playlist size limit reached #{@playlist_size_limit}"}}
 
-                String.contains?(uri.host, "youtu.be") || String.contains?(uri.host, "youtube") ->
-                  {:cont,
-                   {:ok,
-                    {conf,
-                     acc ++
-                       [
-                         %GuessEntry{
-                           url: url,
-                           f1s: Enum.map(String.split(f1s, "|"), &BlindTest.sanitize_input/1),
-                           f2s: Enum.map(String.split(f2s, "|"), &BlindTest.sanitize_input/1)
-                         }
-                       ]}}}
+                youtube?(uri) ->
+                  entry = %GuessEntry{
+                    url: url,
+                    f1s: Enum.map(String.split(f1s, "|"), &BlindTest.sanitize_input/1),
+                    f2s: Enum.map(String.split(f2s, "|"), &BlindTest.sanitize_input/1)
+                  }
+
+                  {:cont, {:ok, {conf, Enum.concat(acc, [entry])}}}
 
                 true ->
                   {:halt,
@@ -226,6 +214,26 @@ defmodule BlindTest do
         end
       end
     )
+  end
+
+  defp youtube?(uri) do
+    String.contains?(uri.host, "youtu.be") || String.contains?(uri.host, "youtube")
+  end
+
+  defp sanitize_playlist_line(line) do
+    String.replace(line, "\"", "") |> String.split(",")
+  end
+
+  defp parse_config_line(config_kv) do
+    Enum.reduce_while(config_kv, {:ok, %Config{}}, fn kv, {:ok, config} ->
+      case parse_custom_kv(kv) do
+        {:ok, {k, v}} ->
+          {:cont, {:ok, Map.put(config, k, v)}}
+
+        err ->
+          {:halt, err}
+      end
+    end)
   end
 
   @doc """
