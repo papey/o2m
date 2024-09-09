@@ -1,6 +1,6 @@
 # O2M, Orgie 2 Metal
 
-[![Build Status](https://drone.github.papey.fr/api/badges/papey/o2m/status.svg)](https://drone.github.papey.fr/papey/o2m)
+[![Build & Test](https://github.com/papey/o2m/actions/workflows/main.yml/badge.svg)](https://github.com/papey/o2m/actions/workflows/main.yml)
 
 O2M is an [Elixir](https://elixir-lang.org) Discord bot. It can :
 
