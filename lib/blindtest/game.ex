@@ -469,7 +469,10 @@ defmodule Game do
 
     Party.add_game(%Party.GameResult{name: data.name, scores: data.scores})
 
-    Nostrum.Api.create_message(data.channel_id, "`#{data.name}` ranking:\n#{generate_ranking(data.scores)}")
+    Nostrum.Api.create_message(
+      data.channel_id,
+      "`#{data.name}` ranking:\n#{generate_ranking(data.scores)}"
+    )
 
     :keep_state_and_data
   end
@@ -650,7 +653,10 @@ defmodule Game.Monitor do
   end
 
   def handle_info({:DOWN, _ref, :process, object, reason}, channel_id) when reason != :killed do
-    Logger.info("Game process monitor received a game crash message", reason: reason, data: object)
+    Logger.info("Game process monitor received a game crash message",
+      reason: reason,
+      data: object
+    )
 
     Nostrum.Api.create_message!(
       channel_id,
