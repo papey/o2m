@@ -14,8 +14,8 @@ defmodule O2M.Commands.Mo do
       "band" ->
         band(args)
 
-      "album" ->
-        album(args)
+      "albums" ->
+        albums(args)
 
       "help" ->
         help(args)
@@ -41,8 +41,8 @@ defmodule O2M.Commands.Mo do
   """
   def band(args) do
     case get_band(args) do
-      {:ok, band} ->
-        {:ok, forge_band_url(band["slug"])}
+      {:ok, %{url: url, desc: desc}} ->
+        {:ok, "[#{desc}](#{url})"}
 
       error ->
         error
@@ -52,21 +52,19 @@ defmodule O2M.Commands.Mo do
   @doc """
   Search for an album from a specified band on Metalorgie
   """
-  def album([]) do
-    "Missing band name and album name for `album` subcommand"
+  def albums([]) do
+    "Missing band name `albums` subcommand"
   end
 
   # If args provided
-  def album(args) do
-    [band | album] =
-      args
-      |> Enum.join(" ")
-      |> String.split("//")
-      |> Enum.map(fn e -> String.trim(e) end)
+  def albums(args) do
+    case get_albums(args) do
+      {:ok, albums} ->
+        message =
+          Enum.map(albums, fn %{title: title, url: url, year: year} -> "[#{title} (#{year})](#{url})" end)
+          |> Enum.join(" · ")
 
-    case get_album(String.split(band, " "), String.split(Enum.at(album, 0), " ")) do
-      {:ok, album} ->
-        {:ok, forge_album_url(band, album["name"], album["id"])}
+        {:ok, message}
 
       error ->
         error
@@ -78,8 +76,8 @@ defmodule O2M.Commands.Mo do
   """
   def help([]) do
     reply = "Available **mo** subcommands are :
-    **album**: to get album info (try _#{Config.get(:prefix)}mo help album_)
-    **band**: to get page band info (try _#{Config.get(:prefix)}mo help band_)
+    **albums**: to get albums (try _#{Config.get(:prefix)}mo help albums_)
+    **band**: to get page band (try _#{Config.get(:prefix)}mo help band_)
     **help**: to get this help message"
 
     {:ok, reply}
@@ -89,8 +87,8 @@ defmodule O2M.Commands.Mo do
   def help(args) do
     reply =
       case Enum.join(args, " ") do
-        "album" ->
-          "Here is an example of \`album\` subcommand : \`\`\`#{Config.get(:prefix)}mo album korn // follow the leader \`\`\`"
+        "albums" ->
+          "Here is an example of \`albums\` subcommand : \`\`\`#{Config.get(:prefix)}mo albums korn\`\`\`"
 
         "band" ->
           "Here is an example of \`band\` subcommand : \`\`\`#{Config.get(:prefix)}mo band korn\`\`\`"
