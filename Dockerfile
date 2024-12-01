@@ -30,7 +30,7 @@ COPY . .
 RUN mix release
 
 # App is build, setup runtime
-FROM elixir:1.15 AS runtime
+FROM elixir:1.17 AS runtime
 
 # Install openssl
 RUN apt-get update -y \
