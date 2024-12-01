@@ -47,7 +47,7 @@ jobs:
       run: mix deps.get
       
     - name: Test
-      run: mix test --no-start
+      run: mix test --exclude no_ci --no-start
 
   container:
     runs-on: ubuntu-latest
