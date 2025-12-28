@@ -4,17 +4,17 @@ defmodule Reminder do
   @max 500
 
   def remind(reaction) do
-    {:ok, dm} = Nostrum.Api.create_dm(reaction.user_id)
+    {:ok, dm} = Nostrum.Api.User.create_dm(reaction.user_id)
 
     with {:ok, _chan} <- is_chan_public(reaction.channel_id),
          {:ok, origin} <-
-           Nostrum.Api.get_channel_message(reaction.channel_id, reaction.message_id) do
+           Nostrum.Api.Message.get(reaction.channel_id, reaction.message_id) do
       content =
         if origin.content != "",
           do: String.slice(origin.content, 0..@max),
           else: "__No text content found__"
 
-      Nostrum.Api.create_message(dm.id,
+      Nostrum.Api.Message.create(dm.id,
         embed: %Nostrum.Struct.Embed{
           :title => " 🧠 Here is your reminder !",
           :description => "from channel #{channel(reaction.channel_id)}",
@@ -37,23 +37,23 @@ defmodule Reminder do
       )
     else
       {:error, reason} ->
-        Nostrum.Api.create_message(dm.id, "**Error**: _#{reason}_")
+        Nostrum.Api.Message.create(dm.id, "**Error**: _#{reason}_")
     end
   end
 
   def delete(reaction) do
     with {:ok, origin} <-
-           Nostrum.Api.get_channel_message(reaction.channel_id, reaction.message_id) do
+           Nostrum.Api.Message.get(reaction.channel_id, reaction.message_id) do
       case {Discord.is_chan_private(origin.channel_id), origin.author.bot} do
         {{:ok, _chan}, true} ->
-          Nostrum.Api.delete_message(reaction.channel_id, reaction.message_id)
+          Nostrum.Api.Message.delete(reaction.channel_id, reaction.message_id)
 
         _ ->
           :noop
       end
     else
       {:error, reason} ->
-        Nostrum.Api.create_message(reaction.channel_id, "**Error**: _#{reason}_")
+        Nostrum.Api.Message.create(reaction.channel_id, "**Error**: _#{reason}_")
     end
   end
 end

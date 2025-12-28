@@ -11,7 +11,7 @@ defmodule Discord do
   Returns an :ok tuple
   """
   def is_chan_private(channel_id) do
-    with {:ok, chan} <- Nostrum.Api.get_channel(channel_id) do
+    with {:ok, chan} <- Nostrum.Api.Channel.get(channel_id) do
       if chan.type == 1,
         do: {:ok, chan},
         else: {:error, "Channel #{channel(chan.id)} is not private"}
@@ -24,7 +24,7 @@ defmodule Discord do
   Returns an :ok tuple
   """
   def is_chan_public(channel_id) do
-    with {:ok, chan} <- Nostrum.Api.get_channel(channel_id) do
+    with {:ok, chan} <- Nostrum.Api.Channel.get(channel_id) do
       if chan.type != 1, do: {:ok, chan}, else: {:error, "Channel #{channel(chan.id)} is private"}
     end
   end
@@ -36,7 +36,7 @@ defmodule Discord do
   """
   def member_has_persmission(user, rid, gid) do
     with {:ok, member} <- Nostrum.Cache.MemberCache.get(gid, user.id) do
-      if Enum.member?(member.roles(), rid) do
+      if Enum.member?(member.roles, rid) do
         {:ok}
       else
         {:error, "User #{mention(user.id)} do not have the required permission"}

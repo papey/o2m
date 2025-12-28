@@ -128,7 +128,7 @@ defmodule Game do
   end
 
   def handle_event({:call, from}, :set_ready, :waiting, data) do
-    Nostrum.Api.create_message(
+    Nostrum.Api.Message.create(
       data.channel_id,
       embed: %Nostrum.Struct.Embed{
         :title => "Blind test \"#{data.name}\" is ready !",
@@ -246,7 +246,7 @@ defmodule Game do
 
   # Handlers when timeouts triggers
   def handle_event(:timeout, :transition_notification, :transition, data) do
-    Nostrum.Api.create_message(data.channel_id, "Listen ! Next song is coming !")
+    Nostrum.Api.Message.create(data.channel_id, "Listen ! Next song is coming !")
     :keep_state_and_data
   end
 
@@ -259,7 +259,7 @@ defmodule Game do
   end
 
   def handle_event(:state_timeout, :guess_playing_error, :guessing, data) do
-    Nostrum.Api.create_message(
+    Nostrum.Api.Message.create(
       data.channel_id,
       "An error occured while trying to play this guess, moving on to the next one"
     )
@@ -297,7 +297,7 @@ defmodule Game do
 
     case Cache.path(current.url) do
       {:ok, p} ->
-        Nostrum.Api.create_message(data.channel_id,
+        Nostrum.Api.Message.create(data.channel_id,
           embed: %Nostrum.Struct.Embed{
             :title => "▶️ Playing song (#{data.config.guess_duration}s)",
             :description => "Guess #{length(data.guessed) + 1} of #{data.total}",
@@ -311,7 +311,7 @@ defmodule Game do
          [{:state_timeout, data.config.guess_duration * 1000, :not_guessed}]}
 
       {:error, reason} ->
-        Nostrum.Api.create_message(data.channel_id, reason)
+        Nostrum.Api.Message.create(data.channel_id, reason)
 
         {:keep_state, updated_data, [{:state_timeout, 0, :guess_playing_error}]}
     end
@@ -323,7 +323,7 @@ defmodule Game do
     # Start the downloader worker inside the game statem
     Downloader.Worker.start_link(data.downloader)
 
-    Nostrum.Api.create_message(
+    Nostrum.Api.Message.create(
       data.channel_id,
       embed: %Nostrum.Struct.Embed{
         :title => "🎧 Here we go for a new blind test !",
@@ -356,7 +356,7 @@ defmodule Game do
       }
     )
 
-    Nostrum.Api.create_message(
+    Nostrum.Api.Message.create(
       data.channel_id,
       "_Prepared with love by #{Discord.mention(data.author_id)}_"
     )
@@ -413,7 +413,7 @@ defmodule Game do
            default_fields}
       end
 
-    Nostrum.Api.create_message(
+    Nostrum.Api.Message.create(
       data.channel_id,
       embed: %Nostrum.Struct.Embed{
         title:
@@ -432,7 +432,7 @@ defmodule Game do
   def handle_event(:enter, _event, :transition, data) do
     Nostrum.Voice.stop(data.guild_id)
 
-    Nostrum.Api.create_message(data.channel_id,
+    Nostrum.Api.Message.create(data.channel_id,
       embed: %Nostrum.Struct.Embed{
         :title => "🎶 Transition ! (#{data.config.transition_duration}s)",
         :description => "🤬 It's taunt time ! ✨",
@@ -450,7 +450,7 @@ defmodule Game do
   def handle_event(:enter, _event, :finished, data) do
     Nostrum.Voice.stop(data.guild_id)
 
-    Nostrum.Api.create_message(data.channel_id,
+    Nostrum.Api.Message.create(data.channel_id,
       embed: %Nostrum.Struct.Embed{
         :title => "Thank you for participating ! ❤️",
         :description =>
@@ -469,7 +469,7 @@ defmodule Game do
 
     Party.add_game(%Party.GameResult{name: data.name, scores: data.scores})
 
-    Nostrum.Api.create_message(
+    Nostrum.Api.Message.create(
       data.channel_id,
       "`#{data.name}` ranking:\n#{generate_ranking(data.scores)}"
     )
@@ -658,7 +658,7 @@ defmodule Game.Monitor do
       data: object
     )
 
-    Nostrum.Api.create_message!(
+    Nostrum.Api.Message.create(
       channel_id,
       embed: %Nostrum.Struct.Embed{
         :title => "KABOOM ALERT, I just exploded, sorry.",

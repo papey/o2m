@@ -64,7 +64,7 @@ defmodule Jobs do
   defp refresh_state(new, old) do
     if Timex.compare(old.date, new.date) == -1 do
       # Post a message
-      Api.create_message(
+      Api.Message.create(
         Config.get(:chan),
         Feed.new_message(new)
       )

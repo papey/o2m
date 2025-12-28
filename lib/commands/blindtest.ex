@@ -64,12 +64,12 @@ defmodule O2M.Commands.Bt do
   def check(_args, msg) do
     with {:ok, _chan} <- is_chan_private(msg.channel_id),
          {:ok, {filename, guess_entries}} <- BlindTest.check(msg.attachments) do
-      Nostrum.Api.create_message!(
+      Nostrum.Api.Message.create(
         msg.channel_id,
         "✅ Syntax for playlist `#{filename}` checked : 👌"
       )
 
-      Nostrum.Api.create_message!(
+      Nostrum.Api.Message.create(
         msg.channel_id,
         "__Moving on to download checks__"
       )
@@ -91,7 +91,7 @@ defmodule O2M.Commands.Bt do
             acc
           else
             {:error, _} ->
-              Nostrum.Api.create_message(
+              Nostrum.Api.Message.create(
                 msg.channel_id,
                 "__Downloader checker update__: error getting #{guess.url}"
               )
@@ -121,7 +121,7 @@ defmodule O2M.Commands.Bt do
       Game.add_player(msg.author.id)
 
       # 👌
-      Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
+      Nostrum.Api.Message.react(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
         name: Emojos.get(:joined)
       })
 
@@ -227,7 +227,7 @@ defmodule O2M.Commands.Bt do
          {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
       case Game.start_game() do
         {:ok, _} ->
-          Nostrum.Api.create_message!(
+          Nostrum.Api.Message.create(
             msg.channel_id,
             embed: %Nostrum.Struct.Embed{
               :title => "🏁 Blind test is starting !",
@@ -289,7 +289,7 @@ defmodule O2M.Commands.Bt do
       case Game.player_pass(msg.author.id) do
         {:ok, :passed} ->
           # ⏩
-          Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
+          Nostrum.Api.Message.react(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
             name: Emojos.get(:passed)
           })
 
@@ -297,7 +297,7 @@ defmodule O2M.Commands.Bt do
 
         {:ok, :skips} ->
           # ⏩
-          Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
+          Nostrum.Api.Message.react(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
             name: Emojos.get(:passed)
           })
 
@@ -305,7 +305,7 @@ defmodule O2M.Commands.Bt do
 
         {:ok, :already_passed} ->
           # 🖕
-          Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
+          Nostrum.Api.Message.react(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
             name: Emojos.get(:already_passed)
           })
 
@@ -366,7 +366,7 @@ defmodule O2M.Commands.Bt do
       # kill running BT process
       BlindTest.destroy(guild_id)
 
-      Nostrum.Api.create_message(
+      Nostrum.Api.Message.create(
         msg.channel_id,
         embed: %Nostrum.Struct.Embed{
           :title => "Okay ! Time to clean up ! 🧹",
@@ -612,7 +612,7 @@ defmodule O2M.Commands.Bt do
     Party.add_player(msg.author.id)
 
     # 👌
-    Nostrum.Api.create_reaction(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
+    Nostrum.Api.Message.react(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
       name: Emojos.get(:joined)
     })
 
@@ -670,7 +670,7 @@ defmodule O2M.Commands.Bt do
         entity_type: 2
       }
 
-      Nostrum.Api.create_guild_scheduled_event(guild_id, options)
+      Nostrum.Api.ScheduledEvent.create(guild_id, nil, options)
 
       {:ok, "Event created ! 📅"}
     else
@@ -683,7 +683,7 @@ defmodule O2M.Commands.Bt do
   end
 
   def events(["list" | _], _msg) do
-    case Nostrum.Api.get_guild_scheduled_events(Config.get(:guild)) do
+    case Nostrum.Api.Guild.scheduled_events(Config.get(:guild)) do
       {:ok, events} ->
         reply =
           case Enum.filter(events, fn event -> event.description == "🎸🤘🎼🎵" end) do
@@ -711,8 +711,8 @@ defmodule O2M.Commands.Bt do
     with {:ok} <-
            Discord.member_has_persmission(msg.author, Config.get(:bt_admin), guild_id),
          {:ok} <- BlindTest.ensure_channel(msg.channel_id),
-         {:ok, event} <- Nostrum.Api.get_guild_scheduled_event(guild_id, id),
-         {:ok, players} <- Nostrum.Api.get_guild_scheduled_event_users(guild_id, event.id) do
+         {:ok, event} <- Nostrum.Api.ScheduledEvent.get(guild_id, id),
+         {:ok, players} <- Nostrum.Api.ScheduledEvent.users(guild_id, event.id) do
       Enum.map(players, fn p -> p.user.id end) |> Party.add_players()
       {:ok, "Lets go ! Have fun 🎸🤘🎼🎵"}
     else

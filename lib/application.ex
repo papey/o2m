@@ -24,8 +24,8 @@ defmodule O2M.Application do
     {:ok, _} = Supervisor.start_link(children, strategy: :one_for_one)
 
     # Custom Username
-    Api.modify_current_user(username: Config.get(:nickname))
-    Api.modify_current_user_nick!(Config.get(:guild), %{nick: Config.get(:nickname)})
+    Api.Self.modify(username: Config.get(:nickname))
+    Api.Guild.modify_self_nick(Config.get(:guild), %{nick: Config.get(:nickname)})
 
     if Config.get(:feed_urls) != "" do
       {:ok, urls} = start_watchers(Config.get(:feed_urls))
