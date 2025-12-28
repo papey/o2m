@@ -8,14 +8,6 @@ defmodule O2M do
   use Nostrum.Consumer
 
   @doc """
-  Basic start and setup of the Nostrum consumer
-  """
-  def start_link() do
-    # Start Consumer
-    Consumer.start_link(__MODULE__)
-  end
-
-  @doc """
   Handle events from Discord
   """
   def handle_event({:MESSAGE_REACTION_ADD, reaction, _ws_state}), do: handle_reaction(reaction)

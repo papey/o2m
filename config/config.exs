@@ -5,6 +5,7 @@ import Config
 config :nostrum,
   # Discord token
   token: System.get_env("DISCORD_TOKEN"),
+  consumers: [O2M],
   num_shards: :auto,
   gateway_intents:
     if(System.get_env("DISCORD_GW_INTENTS") == "yes", do: :all, else: :nonprivileged)
