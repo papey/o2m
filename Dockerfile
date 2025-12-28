@@ -66,4 +66,4 @@ ENV PATH="/home/o2m/.local/bin:${PATH}"
 CMD ["start"]
 
 # default command
-
+ENTRYPOINT ["./prod/rel/o2m/bin/o2m"]
