@@ -13,10 +13,15 @@ defmodule O2M.Application do
     # Init the config, fail early
     Config.init!()
 
-    # DynamicSupervisor setup
-    # Children spec
+    bot_options = %{
+      name: MyBot,
+      consumer: O2M,
+      intents: if(System.get_env("DISCORD_GW_INTENTS") == "yes", do: :all, else: :nonprivileged),
+      wrapped_token: fn -> System.fetch_env!("DISCORD_TOKEN") end
+    }
+
     children = [
-      O2M,
+      {Nostrum.Bot, bot_options},
       {DynamicSupervisor, strategy: :one_for_one, name: O2M.DynamicSupervisor}
     ]
 

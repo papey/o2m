@@ -28,7 +28,9 @@ defmodule O2M.MixProject do
   defp deps do
     [
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
-      {:nostrum, "~> 0.10.0"},
+      {:nostrum,
+       git: "https://github.com/Kraigie/nostrum.git",
+       ref: "5d5212d72feb2a4b78391a6297bf05f1937ee070"},
       {:elixir_feed_parser, "~> 2.1"},
       {:timex, "~> 3.7"},
       {:jason, "~> 1.3"},

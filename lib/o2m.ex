@@ -5,7 +5,7 @@ defmodule O2M do
   alias O2M.Config
 
   # This is a Nostrum Consumer
-  use Nostrum.Consumer
+  @behaviour Nostrum.Consumer
 
   @doc """
   Handle events from Discord
