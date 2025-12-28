@@ -3,8 +3,6 @@ defmodule Discord do
   Discord helpers
   """
 
-  use Nostrum.Consumer
-
   @doc """
   Check if a channel is private
 
