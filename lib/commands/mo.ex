@@ -61,7 +61,9 @@ defmodule O2M.Commands.Mo do
     case get_albums(args) do
       {:ok, albums} ->
         message =
-          Enum.map(albums, fn %{title: title, url: url, year: year} -> "[#{title} (#{year})](#{url})" end)
+          Enum.map(albums, fn %{title: title, url: url, year: year} ->
+            "[#{title} (#{year})](#{url})"
+          end)
           |> Enum.join(" · ")
 
         {:ok, message}

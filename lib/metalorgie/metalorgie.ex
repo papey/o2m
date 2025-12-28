@@ -68,7 +68,10 @@ defmodule Metalorgie do
 
         case json do
           %{"albums" => albums} ->
-            {:ok, Enum.map(albums, fn album -> %{title: album["title"], url: album["url"], year: album["year"]} end)}
+            {:ok,
+             Enum.map(albums, fn album ->
+               %{title: album["title"], url: album["url"], year: album["year"]}
+             end)}
 
           _ ->
             {:error, "No album found for band **#{band}**"}
