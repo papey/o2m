@@ -28,12 +28,14 @@ defmodule O2M.MixProject do
   defp deps do
     [
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
-      {:nostrum, "~> 0.10.0"},
+      {:nostrum,
+       git: "https://github.com/Kraigie/nostrum.git",
+       ref: "5d5212d72feb2a4b78391a6297bf05f1937ee070"},
       {:elixir_feed_parser, "~> 2.1"},
       {:timex, "~> 3.7"},
       {:jason, "~> 1.3"},
       {:hackney, "~> 1.17"},
-      {:httpoison, "~> 2.2.0"},
+      {:httpoison, "~> 2.3.0"},
       {:gen_state_machine, "~> 3.0.0"},
       {:ssl_verify_fun, ">= 1.1.7"}
     ]

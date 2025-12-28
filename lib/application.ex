@@ -13,10 +13,15 @@ defmodule O2M.Application do
     # Init the config, fail early
     Config.init!()
 
-    # DynamicSupervisor setup
-    # Children spec
+    bot_options = %{
+      name: MyBot,
+      consumer: O2M,
+      intents: if(System.get_env("DISCORD_GW_INTENTS") == "yes", do: :all, else: :nonprivileged),
+      wrapped_token: fn -> System.fetch_env!("DISCORD_TOKEN") end
+    }
+
     children = [
-      O2M,
+      {Nostrum.Bot, bot_options},
       {DynamicSupervisor, strategy: :one_for_one, name: O2M.DynamicSupervisor}
     ]
 
@@ -24,8 +29,8 @@ defmodule O2M.Application do
     {:ok, _} = Supervisor.start_link(children, strategy: :one_for_one)
 
     # Custom Username
-    Api.modify_current_user(username: Config.get(:nickname))
-    Api.modify_current_user_nick!(Config.get(:guild), %{nick: Config.get(:nickname)})
+    Api.Self.modify(username: Config.get(:nickname))
+    Api.Guild.modify_self_nick(Config.get(:guild), %{nick: Config.get(:nickname)})
 
     if Config.get(:feed_urls) != "" do
       {:ok, urls} = start_watchers(Config.get(:feed_urls))

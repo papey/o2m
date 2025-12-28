@@ -5,15 +5,7 @@ defmodule O2M do
   alias O2M.Config
 
   # This is a Nostrum Consumer
-  use Nostrum.Consumer
-
-  @doc """
-  Basic start and setup of the Nostrum consumer
-  """
-  def start_link() do
-    # Start Consumer
-    Consumer.start_link(__MODULE__)
-  end
+  @behaviour Nostrum.Consumer
 
   @doc """
   Handle events from Discord
