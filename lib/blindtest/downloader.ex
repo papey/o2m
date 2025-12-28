@@ -5,7 +5,7 @@ defmodule Downloader do
 
   require Logger
 
-  alias Nostrum.Api
+  alias Nostrum.Api.Message
 
   def parse_timestamps(ts, guess_duration) do
     start =
@@ -153,7 +153,7 @@ defmodule Downloader do
       # create cache directory if needed
       case File.mkdir_p(cache) do
         {:error, reason} ->
-          Api.Message.create(
+          Message.create(
             channel_id,
             "__Downloader status update__: cache directory creation failed, downloads aborted"
           )
@@ -167,7 +167,7 @@ defmodule Downloader do
 
     def handle_continue(:work, {[], _cache, channel_id, private_channel_id, _guess_duration}) do
       for channel <- [channel_id, private_channel_id] do
-        Api.Message.create(
+        Message.create(
           channel,
           "__Downloader status update__: all songs in cache"
         )
@@ -176,7 +176,7 @@ defmodule Downloader do
       if BlindTest.exists?() do
         Game.set_ready()
       else
-        Api.Message.create(channel_id, "Error when communicating with blind test process")
+        Message.create(channel_id, "Error when communicating with blind test process")
       end
 
       {:stop, :normal, []}
@@ -205,7 +205,7 @@ defmodule Downloader do
         Game.add_guess(current)
       else
         {:error, reason} ->
-          Api.Message.create(
+          Message.create(
             private_channel_id,
             "__Downloader status update__: error when downloading #{current.url}, reason : #{reason}"
           )
@@ -213,7 +213,7 @@ defmodule Downloader do
 
       if length(rest) > 0 do
         for channel <- [channel_id, private_channel_id] do
-          Api.Message.create(
+          Message.create(
             channel,
             "__Downloader status update__: download in progress, #{length(rest)} song(s) remaining"
           )

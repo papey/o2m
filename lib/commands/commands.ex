@@ -4,7 +4,7 @@ defmodule O2M.Commands do
   """
 
   require Logger
-  alias Nostrum.Api
+  alias Nostrum.Api.Message
 
   @cmds ["mo", "tmpl", "help", "bt"]
 
@@ -61,14 +61,14 @@ defmodule O2M.Commands do
   def handle_reply({:ok, :silent}, _msg), do: :ignore
 
   def handle_reply({:ok, reply}, msg) do
-    Api.Message.create(msg.channel_id,
+    Message.create(msg.channel_id,
       content: reply,
       message_reference: %{message_id: msg.id}
     )
   end
 
   def handle_reply({:error, reason}, msg) do
-    Api.Message.create(msg.channel_id,
+    Message.create(msg.channel_id,
       content: "**Error**: _#{reason}_",
       message_reference: %{message_id: msg.id}
     )

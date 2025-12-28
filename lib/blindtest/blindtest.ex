@@ -1,5 +1,6 @@
 defmodule BlindTest do
   require Logger
+  alias Nostrum.Api.Message
 
   # playlist max size, makes HolyRilettes happy
   @playlist_size_limit 42
@@ -56,7 +57,7 @@ defmodule BlindTest do
          {:ok, resp} <- HTTPoison.get(file.url),
          {:ok, {config, guess_entries}} <- parse_csv(resp.body),
          {:ok, _} <-
-           Nostrum.Api.Message.create(
+           Message.create(
              from_channel,
              "Blind test init started, using `#{file.filename}` in channel #{Discord.channel(channel_id)}"
            ) do
@@ -282,41 +283,41 @@ defmodule BlindTest do
 
       :already ->
         # ⏰
-        Nostrum.Api.Message.react(bt_channel_id, msg.id, %Nostrum.Struct.Emoji{
+        Message.react(bt_channel_id, msg.id, %Nostrum.Struct.Emoji{
           name: Emojos.get(:already)
         })
 
       :f1 ->
         # 🎤
-        Nostrum.Api.Message.react(bt_channel_id, msg.id, %Nostrum.Struct.Emoji{
+        Message.react(bt_channel_id, msg.id, %Nostrum.Struct.Emoji{
           name: Emojos.get(:f1)
         })
 
-        Nostrum.Api.Message.create(
+        Message.create(
           bt_channel_id,
           "#{Discord.mention(msg.author.id)} just found the first field and earned #{points} points !"
         )
 
       :f2 ->
         # 💿
-        Nostrum.Api.Message.react(bt_channel_id, msg.id, %Nostrum.Struct.Emoji{
+        Message.react(bt_channel_id, msg.id, %Nostrum.Struct.Emoji{
           name: Emojos.get(:f2)
         })
 
-        Nostrum.Api.Message.create(
+        Message.create(
           bt_channel_id,
           "#{Discord.mention(msg.author.id)} just found the second field and earned #{points} points !"
         )
 
       :both ->
         # 🏆
-        Nostrum.Api.Message.react(bt_channel_id, msg.id, %Nostrum.Struct.Emoji{
+        Message.react(bt_channel_id, msg.id, %Nostrum.Struct.Emoji{
           name: Emojos.get(:both)
         })
 
-        Nostrum.Api.Message.create(
+        Message.create(
           bt_channel_id,
-          "#{Discord.mention(msg.author.id)} just found both fields and earned #{points} points !"
+         "#{Discord.mention(msg.author.id)} just found both fields and earned #{points} points !"
         )
     end
   end
