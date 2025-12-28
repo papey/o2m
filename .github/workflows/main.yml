@@ -20,7 +20,7 @@ jobs:
     - name: Set up Elixir
       uses: erlef/setup-beam@v1.18.2
       with:
-        elixir-version: '1.18'
+        elixir-version: '1.19'
         otp-version: '26.0'
 
     - name: Install dependencies
@@ -40,7 +40,7 @@ jobs:
     - name: Set up Elixir
       uses: erlef/setup-beam@v1.18.2
       with:
-        elixir-version: '1.18'
+        elixir-version: '1.19'
         otp-version: '26.0'
 
     - name: Install dependencies

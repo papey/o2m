@@ -1,6 +1,6 @@
 # From latest elixir version
 # First build the app
-FROM elixir:1.18 as builder
+FROM elixir:1.19 as builder
 
 RUN apt-get update && apt-get install -y openssl
 
@@ -30,7 +30,7 @@ COPY . .
 RUN mix release
 
 # App is build, setup runtime
-FROM elixir:1.17 AS runtime
+FROM elixir:1.19 AS runtime
 
 # Install openssl
 RUN apt-get update -y \
@@ -66,4 +66,4 @@ ENV PATH="/home/o2m/.local/bin:${PATH}"
 CMD ["start"]
 
 # default command
-ENTRYPOINT ["./prod/rel/o2m/bin/o2m"]
+
