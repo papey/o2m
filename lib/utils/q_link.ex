@@ -1,8 +1,7 @@
 defmodule QLink do
   import Meeseeks.CSS
 
-  @base_url "https://qlink.fyi"
-  @convert_path "/convert?url="
+  @base_url "https://qlink.fyi/convert"
 
   @timeout 30_000
 
@@ -15,9 +14,8 @@ defmodule QLink do
     do: Enum.any?(@qobuz_prefixes, fn prefix -> String.starts_with?(url, prefix) end)
 
   defp request_conversion(url) do
-    full_query = "#{@base_url}#{@convert_path}#{URI.encode_www_form(url)}"
-
-    case HTTPoison.get(full_query,
+    case HTTPoison.get(@base_url, [],
+           params: %{url: url},
            timeout: @timeout,
            recv_timeout: @timeout
          ) do
