@@ -317,7 +317,7 @@ defmodule BlindTest do
 
         Message.create(
           bt_channel_id,
-         "#{Discord.mention(msg.author.id)} just found both fields and earned #{points} points !"
+          "#{Discord.mention(msg.author.id)} just found both fields and earned #{points} points !"
         )
     end
   end
