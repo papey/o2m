@@ -46,8 +46,8 @@ defmodule StreamingFinder do
 
   defp enrich_with_qobuz_url(links, odesli_url) do
     with {:ok, %{body: body}} <- HTTPoison.get(odesli_url),
-         {:ok, spotify} <- Odesli.extract_spotify_url(body),
-         {:ok, qobuz} <- QLink.convert(spotify) do
+         {:ok, spotify_url} <- Odesli.extract_spotify_url(body),
+         {:ok, qobuz} <- QLink.convert(spotify_url) do
       links ++ [qobuz: qobuz]
     else
       _ -> links
@@ -67,10 +67,9 @@ defmodule StreamingFinder do
   defp format_links(links) do
     links
     |> Enum.reject(&is_nil/1)
-    |> Enum.map(fn
-      {:songlink, url} -> "[Songlink](#{url})"
-      {:qobuz, url} -> "[Qobuz](#{url})"
-      {_, url} -> "[Link](#{url})"
+    |> Enum.map(fn {type, url} ->
+      label = type |> Atom.to_string() |> String.capitalize()
+      "[#{label}](#{url})"
     end)
     |> Enum.join(" - ")
   end
