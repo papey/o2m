@@ -37,7 +37,8 @@ defmodule O2M.MixProject do
       {:hackney, "~> 1.17"},
       {:httpoison, "~> 2.3.0"},
       {:gen_state_machine, "~> 3.0.0"},
-      {:ssl_verify_fun, ">= 1.1.7"}
+      {:ssl_verify_fun, ">= 1.1.7"},
+      {:meeseeks, "~> 0.18.0"}
     ]
   end
 end
