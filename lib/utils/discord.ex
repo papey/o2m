@@ -32,7 +32,7 @@ defmodule Discord do
 
   Returns an atom indicating role membership
   """
-  def member_has_persmission(user, rid, gid) do
+  def member_has_permission(user, rid, gid) do
     with {:ok, member} <- Nostrum.Cache.MemberCache.get(gid, user.id) do
       if Enum.member?(member.roles, rid) do
         {:ok}
