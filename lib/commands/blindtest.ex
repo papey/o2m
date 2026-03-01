@@ -52,7 +52,7 @@ defmodule O2M.Commands.Bt do
   """
   def init(args, msg) do
     with {:ok, _chan} <- is_chan_private(msg.channel_id),
-         {:ok} <- member_has_persmission(msg.author, Config.get(:bt_admin), Config.get(:guild)),
+         {:ok} <- member_has_permission(msg.author, Config.get(:bt_admin), Config.get(:guild)),
          {:ok} <- BlindTest.ensure_not_running() do
       BlindTest.init(msg.attachments, msg.author, msg.channel_id, args)
     else
@@ -123,9 +123,7 @@ defmodule O2M.Commands.Bt do
       Game.add_player(msg.author.id)
 
       # 👌
-      Message.react(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
-        name: Emojos.get(:joined)
-      })
+      Discord.react(msg, Emojos.get(:joined))
 
       {:ok, :silent}
     else
@@ -225,7 +223,7 @@ defmodule O2M.Commands.Bt do
   """
   def start(_args, msg) do
     with {:ok} <- BlindTest.ensure_running(),
-         {:ok} <- member_has_persmission(msg.author, Config.get(:bt_admin), Config.get(:guild)),
+         {:ok} <- member_has_permission(msg.author, Config.get(:bt_admin), Config.get(:guild)),
          {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
       case Game.start_game() do
         {:ok, _} ->
@@ -291,25 +289,19 @@ defmodule O2M.Commands.Bt do
       case Game.player_pass(msg.author.id) do
         {:ok, :passed} ->
           # ⏩
-          Message.react(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
-            name: Emojos.get(:passed)
-          })
+          Discord.react(msg, Emojos.get(:passed))
 
           {:ok, :silent}
 
         {:ok, :skips} ->
           # ⏩
-          Message.react(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
-            name: Emojos.get(:passed)
-          })
+          Discord.react(msg, Emojos.get(:passed))
 
           {:ok, "STOP THE COUNT, I skip this guess"}
 
         {:ok, :already_passed} ->
           # 🖕
-          Message.react(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
-            name: Emojos.get(:already_passed)
-          })
+          Discord.react(msg, Emojos.get(:already_passed))
 
           {:ok, :silent}
 
@@ -358,7 +350,7 @@ defmodule O2M.Commands.Bt do
     guild_id = Config.get(:guild)
 
     with {:ok} <- BlindTest.ensure_running(),
-         {:ok} <- member_has_persmission(msg.author, Config.get(:bt_admin), guild_id),
+         {:ok} <- member_has_permission(msg.author, Config.get(:bt_admin), guild_id),
          {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
       downloarder_pid = Process.whereis(Downloader.Worker)
       # kill downloader is any
@@ -478,7 +470,7 @@ defmodule O2M.Commands.Bt do
   end
 
   def lboard(["top" | _], msg) do
-    with {:ok} <- member_has_persmission(msg.author, Config.get(:bt_admin), Config.get(:guild)) do
+    with {:ok} <- member_has_permission(msg.author, Config.get(:bt_admin), Config.get(:guild)) do
       reply =
         Leaderboard.top()
         |> Enum.with_index()
@@ -497,7 +489,7 @@ defmodule O2M.Commands.Bt do
   end
 
   def lboard(["set", _user, <<instruction::binary-size(1)>> <> points | _], msg) do
-    with {:ok} <- member_has_persmission(msg.author, Config.get(:bt_admin), Config.get(:guild)),
+    with {:ok} <- member_has_permission(msg.author, Config.get(:bt_admin), Config.get(:guild)),
          {:ok} <- BlindTest.ensure_channel(msg.channel_id) do
       case Integer.parse(points) do
         {val, _} ->
@@ -543,7 +535,7 @@ defmodule O2M.Commands.Bt do
 
   def party(["reset" | _], msg) do
     with {:ok} <-
-           Discord.member_has_persmission(msg.author, Config.get(:bt_admin), Config.get(:guild)) do
+           Discord.member_has_permission(msg.author, Config.get(:bt_admin), Config.get(:guild)) do
       Party.reset()
       {:ok, "🙌  Party cleared  🙌"}
     else
@@ -614,9 +606,7 @@ defmodule O2M.Commands.Bt do
     Party.add_player(msg.author.id)
 
     # 👌
-    Message.react(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
-      name: Emojos.get(:joined)
-    })
+    Discord.react(msg, Emojos.get(:joined))
 
     {:ok, :silent}
   end
@@ -660,7 +650,7 @@ defmodule O2M.Commands.Bt do
     guild_id = Config.get(:guild)
 
     with {:ok} <-
-           Discord.member_has_persmission(msg.author, Config.get(:bt_admin), guild_id),
+           Discord.member_has_permission(msg.author, Config.get(:bt_admin), guild_id),
          {:ok, date} <- Timex.parse(date, "{YYYY}-{0M}-{D}@{h24}:{m}"),
          with_tz <- Timex.to_datetime(date, Config.get(:bt_events_tz)) do
       options = %{
@@ -711,7 +701,7 @@ defmodule O2M.Commands.Bt do
     guild_id = Config.get(:guild)
 
     with {:ok} <-
-           Discord.member_has_persmission(msg.author, Config.get(:bt_admin), guild_id),
+           Discord.member_has_permission(msg.author, Config.get(:bt_admin), guild_id),
          {:ok} <- BlindTest.ensure_channel(msg.channel_id),
          {:ok, event} <- Nostrum.Api.ScheduledEvent.get(guild_id, id),
          {:ok, players} <- Nostrum.Api.ScheduledEvent.users(guild_id, event.id) do

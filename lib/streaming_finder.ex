@@ -9,7 +9,7 @@ defmodule StreamingFinder do
 
     case extract_urls(origin.content) do
       [] ->
-        Message.react(origin.channel_id, origin.id, "🖕")
+        Discord.react(origin, "🖕")
 
       urls ->
         for url <- urls |> Enum.take(@max_urls) do
@@ -22,7 +22,7 @@ defmodule StreamingFinder do
               )
 
             {:error, :no_match} ->
-              Message.react(origin.channel_id, origin.id, "🤷")
+              Discord.react(origin, "🤷")
           end
         end
     end

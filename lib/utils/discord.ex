@@ -32,7 +32,7 @@ defmodule Discord do
 
   Returns an atom indicating role membership
   """
-  def member_has_persmission(user, rid, gid) do
+  def member_has_permission(user, rid, gid) do
     with {:ok, member} <- Nostrum.Cache.MemberCache.get(gid, user.id) do
       if Enum.member?(member.roles, rid) do
         {:ok}
@@ -61,4 +61,10 @@ defmodule Discord do
   def channel(id) do
     "<##{id}>"
   end
+
+  @doc """
+  Small wrapper to ensure emoji is encoded in order to react properly
+  """
+  def react(origin, emoji),
+    do: Nostrum.Api.Message.react(origin.channel_id, origin.id, URI.encode(emoji))
 end

@@ -1,5 +1,6 @@
 defmodule Game do
   alias Nostrum.Api.Message
+
   @moduledoc """
   State Machine used for blind tests
   """
