@@ -61,4 +61,10 @@ defmodule Discord do
   def channel(id) do
     "<##{id}>"
   end
+
+  @doc """
+  Small wrapper to ensure emoji is encoded in order to react properly
+  """
+  def react(origin, emoji),
+    do: Nostrum.Api.Message.react(origin.channel_id, origin.id, URI.encode(emoji))
 end
