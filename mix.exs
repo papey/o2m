@@ -30,7 +30,7 @@ defmodule O2M.MixProject do
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
       {:nostrum,
        git: "https://github.com/Kraigie/nostrum.git",
-       ref: "5d5212d72feb2a4b78391a6297bf05f1937ee070"},
+       ref: "20102452fa360521c1786031178053531808b896"},
       {:elixir_feed_parser, "~> 2.1"},
       {:timex, "~> 3.7"},
       {:jason, "~> 1.3"},
