@@ -36,7 +36,7 @@ defmodule StreamingFinder do
     case Odesli.get(url) do
       {:ok, odesli_url} ->
         [songlink: odesli_url]
-        |> add_qobuz_if_found(odesli_url)
+        |> enrich_with_qobuz_url(odesli_url)
         |> reply(origin)
 
       {:error, _} ->
@@ -44,7 +44,7 @@ defmodule StreamingFinder do
     end
   end
 
-  defp add_qobuz_if_found(links, odesli_url) do
+  defp enrich_with_qobuz_url(links, odesli_url) do
     with {:ok, %{body: body}} <- HTTPoison.get(odesli_url),
          {:ok, spotify} <- Odesli.extract_spotify_url(body),
          {:ok, qobuz} <- QLink.convert(spotify) do
