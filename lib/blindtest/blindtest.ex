@@ -283,15 +283,11 @@ defmodule BlindTest do
 
       :already ->
         # ⏰
-        Message.react(bt_channel_id, msg.id, %Nostrum.Struct.Emoji{
-          name: Emojos.get(:already)
-        })
+        Discord.react(msg, Emojos.get(:already))
 
       :f1 ->
         # 🎤
-        Message.react(bt_channel_id, msg.id, %Nostrum.Struct.Emoji{
-          name: Emojos.get(:f1)
-        })
+        Discord.react(msg, Emojos.get(:f1))
 
         Message.create(
           bt_channel_id,
@@ -300,9 +296,7 @@ defmodule BlindTest do
 
       :f2 ->
         # 💿
-        Message.react(bt_channel_id, msg.id, %Nostrum.Struct.Emoji{
-          name: Emojos.get(:f2)
-        })
+        Discord.react(msg, Emojos.get(:f2))
 
         Message.create(
           bt_channel_id,
@@ -311,9 +305,7 @@ defmodule BlindTest do
 
       :both ->
         # 🏆
-        Message.react(bt_channel_id, msg.id, %Nostrum.Struct.Emoji{
-          name: Emojos.get(:both)
-        })
+        Discord.react(msg, Emojos.get(:both))
 
         Message.create(
           bt_channel_id,

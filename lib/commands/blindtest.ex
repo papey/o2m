@@ -123,9 +123,7 @@ defmodule O2M.Commands.Bt do
       Game.add_player(msg.author.id)
 
       # 👌
-      Message.react(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
-        name: Emojos.get(:joined)
-      })
+      Discord.react(msg, Emojos.get(:joined))
 
       {:ok, :silent}
     else
@@ -291,25 +289,19 @@ defmodule O2M.Commands.Bt do
       case Game.player_pass(msg.author.id) do
         {:ok, :passed} ->
           # ⏩
-          Message.react(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
-            name: Emojos.get(:passed)
-          })
+          Discord.react(msg, Emojos.get(:passed))
 
           {:ok, :silent}
 
         {:ok, :skips} ->
           # ⏩
-          Message.react(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
-            name: Emojos.get(:passed)
-          })
+          Discord.react(msg, Emojos.get(:passed))
 
           {:ok, "STOP THE COUNT, I skip this guess"}
 
         {:ok, :already_passed} ->
           # 🖕
-          Message.react(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
-            name: Emojos.get(:already_passed)
-          })
+          Discord.react(msg, Emojos.get(:already_passed))
 
           {:ok, :silent}
 
@@ -614,9 +606,7 @@ defmodule O2M.Commands.Bt do
     Party.add_player(msg.author.id)
 
     # 👌
-    Message.react(msg.channel_id, msg.id, %Nostrum.Struct.Emoji{
-      name: Emojos.get(:joined)
-    })
+    Discord.react(msg, Emojos.get(:joined))
 
     {:ok, :silent}
   end
