@@ -1,33 +1,52 @@
 defmodule Odesli do
-  @base_url "https://api.odesli.co"
-  @resolve_path "resolve"
+  import Meeseeks.CSS
 
+  @base_url "https://api.odesli.co/resolve"
   @timeout 30_000
 
-  defmodule Response do
-    defstruct [:type, :id, :provider]
+  def get(url) do
+    case HTTPoison.get(@base_url, [],
+           params: %{url: url},
+           timeout: @timeout,
+           recv_timeout: @timeout
+         ) do
+      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+        decode_response(body)
+
+      {:ok, %HTTPoison.Response{status_code: code}} ->
+        {:error, {:http_error, code}}
+
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        {:error, reason}
+    end
   end
 
-  def get(url) do
-    {:ok, resp} =
-      HTTPoison.get("#{@base_url}/#{@resolve_path}?#{URI.encode_query(%{url: url})}", [],
-        timeout: @timeout,
-        recv_timeout: @timeout
-      )
+  defp decode_response(body) do
+    case Jason.decode(body) do
+      {:ok, %{"id" => id, "type" => type, "provider" => provider}} ->
+        {:ok, build_odesli_url(id, type, provider)}
 
-    case resp do
-      %HTTPoison.Response{status_code: 200} ->
-        parsed = Jason.decode!(resp.body)
+      {:ok, _} ->
+        {:error, :unexpected_payload}
 
-        {:ok,
-         %Response{
-           id: parsed["id"],
-           type: parsed["type"],
-           provider: parsed["provider"]
-         }}
-
-      _ ->
-        {:error, :no_match}
+      {:error, _} ->
+        {:error, :invalid_json}
     end
+  end
+
+  def extract_spotify_url(html) do
+    result =
+      html
+      |> Meeseeks.parse()
+      |> Meeseeks.one(css("a[href*='spotify.com']"))
+
+    case result do
+      nil -> {:error, :link_not_found}
+      node -> {:ok, Meeseeks.attr(node, "href")}
+    end
+  end
+
+  defp build_odesli_url(id, type, provider) do
+    "https://#{type}.link/#{String.first(provider)}/#{id}"
   end
 end
