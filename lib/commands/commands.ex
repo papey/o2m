@@ -110,7 +110,7 @@ Using prefix `#{O2M.Config.get(:prefix)}` :
 - help : to get this help message
 
 **Slash Commands**
-- `/submit_news 
+- `/submit_news`
 
 **Emojis**
 - 🔗 : find links for all streaming plateforms from the resources linked in the message content
