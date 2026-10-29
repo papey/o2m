@@ -19,6 +19,17 @@ defmodule Metalorgie do
     url
   end
 
+  def api_key_setup?() do
+    match?({:ok, _}, get_api_key())
+  end
+
+  def get_api_key() do
+    case System.get_env("METALORGIE_MASTER_API_KEY") do
+      key when is_binary(key) and key != "" -> {:ok, key}
+      _ -> {:error, "No API key setup"}
+    end
+  end
+
   @doc """
   Get data for a specific band from Metalorgie
 
@@ -79,6 +90,45 @@ defmodule Metalorgie do
 
       {:error, message} ->
         {:error, message}
+    end
+  end
+
+  @doc """
+  Submit a news proposal to Metalorgie
+
+  Returns `{:ok, response}` or `{:error, reason}`
+  """
+  def submit_news(text, source, name) do
+    with {:ok, api_key} <- get_api_key(),
+         {:ok, body} <-
+           Jason.encode(%{
+             text: text,
+             source: source,
+             name: name,
+             proposalSource: "discord"
+           }),
+         {:ok, %HTTPoison.Response{status_code: code, body: resp_body}} when code in 200..299 <-
+           HTTPoison.post(
+             Metalorgie.get_config_url() <> "/api/news",
+             body,
+             [
+               {"X-AUTH-TOKEN", api_key},
+               {"Content-Type", "application/json"}
+             ]
+           ) do
+      case Jason.decode(resp_body) do
+        {:ok, json} -> {:ok, json}
+        {:error, _} -> {:ok, resp_body}
+      end
+    else
+      {:ok, %HTTPoison.Response{status_code: code, body: resp_body}} ->
+        {:error, {:http_error, code, resp_body}}
+
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        {:error, reason}
+
+      {:error, _} = error ->
+        error
     end
   end
 end
