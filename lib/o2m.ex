@@ -24,15 +24,18 @@ defmodule O2M do
   def handle_event(
         {:INTERACTION_CREATE,
          %Interaction{
+           member: %{nick: nick},
            data: %{
              name: "submit_news",
-             options: [%{name: "text", value: text}, %{name: "source", value: source}]
+             options: options
            },
-           user: %{global_name: username}
+           user: %{global_name: global_name, username: username}
          } = interaction, _ws_state}
       ) do
+    %{"text" => text, "source" => source} = Map.new(options, &{&1.name, &1.value})
+
     content =
-      case Metalorgie.submit_news(text, source, username) do
+      case Metalorgie.submit_news(text, source, nick || global_name || username) do
         {:ok, _} ->
           "✅ News submitted"
 
@@ -41,7 +44,7 @@ defmodule O2M do
           "❌ Error submitting news"
       end
 
-    Nostrum.Api.create_interaction_response(interaction, %{type: 4, data: %{content: content}})
+    Nostrum.Api.Interaction.create_response(interaction, %{type: 4, data: %{content: content}})
   end
 
   def handle_event({:MESSAGE_REACTION_ADD, reaction, _ws_state}), do: handle_reaction(reaction)
