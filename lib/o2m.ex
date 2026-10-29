@@ -16,7 +16,7 @@ defmodule O2M do
 
   def handle_event({:MESSAGE_CREATE, msg, _ws_state}) do
     msg
-    |> enrich_message(Config.get(:prefix))
+    |> add_command_context(Config.get(:prefix))
     |> handle_message()
   end
 
@@ -26,7 +26,7 @@ defmodule O2M do
     :noop
   end
 
-  def enrich_message(msg, prefix) do
+  def add_command_context(msg, prefix) do
     if String.starts_with?(msg.content, prefix) do
       {:cmd, msg, prefix}
     else
