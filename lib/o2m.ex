@@ -3,6 +3,8 @@ defmodule O2M do
   A simple Elixir module based on Nostrum to interact with Discord
   """
   alias O2M.Config
+  alias Nostrum.Struct.Interaction
+  require Logger
 
   # This is a Nostrum Consumer
   @behaviour Nostrum.Consumer
@@ -10,6 +12,38 @@ defmodule O2M do
   @doc """
   Handle events from Discord
   """
+  def handle_event({:READY, _data, _ws_state}) do
+    if Metalorgie.api_key_setup?() do
+      O2M.Commands.slash_commands_definitions()
+      |> Enum.map(fn command ->
+        Nostrum.Api.ApplicationCommand.create_guild_command(Config.get(:guild), command)
+      end)
+    end
+  end
+
+  def handle_event(
+        {:INTERACTION_CREATE,
+         %Interaction{
+           data: %{
+             name: "submit_news",
+             options: [%{name: "text", value: text}, %{name: "source", value: source}]
+           },
+           user: %{global_name: username}
+         } = interaction, _ws_state}
+      ) do
+    content =
+      case Metalorgie.submit_news(text, source, username) do
+        {:ok, _} ->
+          "✅ News submitted"
+
+        {:error, reason} ->
+          Logger.error("Failed to submit news: #{inspect(reason)}")
+          "❌ Error submitting news"
+      end
+
+    Nostrum.Api.create_interaction_response(interaction, %{type: 4, data: %{content: content}})
+  end
+
   def handle_event({:MESSAGE_REACTION_ADD, reaction, _ws_state}), do: handle_reaction(reaction)
 
   def handle_event({:MESSAGE_CREATE, msg, _ws_state}) when msg.author.bot, do: :ignore

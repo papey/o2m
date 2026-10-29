@@ -73,6 +73,29 @@ defmodule O2M.Commands do
     )
   end
 
+  def slash_commands_definitions() do
+    [
+      %{
+        name: "submit_news",
+        description: "submit a news to Metalorgie from Discord",
+        options: [
+          %{
+            type: 3,
+            name: "text",
+            description: "text attached to the news proposal",
+            required: true
+          },
+          %{
+            type: 3,
+            name: "source",
+            description: "url of the source for the news",
+            required: true
+          }
+        ]
+      }
+    ]
+  end
+
   defmodule Help do
     @moduledoc """
     Help module handle coll to help command
