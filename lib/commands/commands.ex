@@ -3,7 +3,6 @@ defmodule O2M.Commands do
   Commands module handle routing to all available commands
   """
 
-  require Logger
   alias Nostrum.Api.Message
 
   @cmds ["mo", "tmpl", "help", "bt"]
