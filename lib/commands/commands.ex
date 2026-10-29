@@ -109,6 +109,9 @@ Using prefix `#{O2M.Config.get(:prefix)}` :
 - bt : to interact with blind tests (configured: **#{O2M.Config.get(:bt)}**)
 - help : to get this help message
 
+**Slash Commands**
+- `/submit_news 
+
 **Emojis**
 - 🔗 : find links for all streaming plateforms from the resources linked in the message content
 - 📌 : add this emoji as a reaction to pin a public message in order to get a private reminder about the pinned message
