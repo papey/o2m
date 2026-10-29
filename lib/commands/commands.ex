@@ -3,7 +3,6 @@ defmodule O2M.Commands do
   Commands module handle routing to all available commands
   """
 
-  require Logger
   alias Nostrum.Api.Message
 
   @cmds ["mo", "tmpl", "help", "bt"]
@@ -74,6 +73,29 @@ defmodule O2M.Commands do
     )
   end
 
+  def slash_commands_definitions() do
+    [
+      %{
+        name: "submit_news",
+        description: "submit a news to Metalorgie from Discord",
+        options: [
+          %{
+            type: 3,
+            name: "text",
+            description: "text attached to the news proposal",
+            required: true
+          },
+          %{
+            type: 3,
+            name: "source",
+            description: "url of the source for the news",
+            required: true
+          }
+        ]
+      }
+    ]
+  end
+
   defmodule Help do
     @moduledoc """
     Help module handle coll to help command
@@ -86,6 +108,9 @@ Using prefix `#{O2M.Config.get(:prefix)}` :
 - tmpl : to interact with announcement templates
 - bt : to interact with blind tests (configured: **#{O2M.Config.get(:bt)}**)
 - help : to get this help message
+
+**Slash Commands**
+- `/submit_news`
 
 **Emojis**
 - 🔗 : find links for all streaming plateforms from the resources linked in the message content
